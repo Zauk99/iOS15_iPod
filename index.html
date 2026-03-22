@@ -1,0 +1,1449 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="iPod">
+<meta name="theme-color" content="#1a1a1a">
+<title>iPod</title>
+<link rel="apple-touch-icon" href="/iPod_iOS15/icon.png">
+<link rel="icon" href="/iPod_iOS15/icon.png">
+
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/iPod_iOS15/sw.js').catch(() => {});
+}
+</script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Chicago:wght@400;700&display=swap');
+
+  :root {
+    --ipod-w: min(320px, 92vw);
+    --screen-bg: #fff;
+    --screen-text: #000;
+    --screen-accent: #4a9eff;
+    --screen-select: #3a6fd8;
+    --body-top: #e8e4dc;
+    --body-bot: #c8c4bc;
+    --wheel-out: #d4d0c8;
+    --wheel-in: #c0bcb4;
+    --btn-center: #d8d4cc;
+    --text-dark: #2a2a2a;
+    --border: #a0a09898;
+    --titlebar-top: #4a6fa5;
+    --titlebar-bot: #2a4a80;
+  }
+
+  /* ── TEMAS ── */
+  .theme-black  { --body-top:#2a2a2a; --body-bot:#181818; --wheel-out:#222; --wheel-in:#181818; --btn-center:#282828; --border:#111; --titlebar-top:#222; --titlebar-bot:#111; --wheel-label:#999; }
+  .theme-red    { --body-top:#a02010; --body-bot:#6e1508; --wheel-out:#5a1008; --wheel-in:#420c06; --btn-center:#520e07; --border:#380a05; --titlebar-top:#4a6fa5; --titlebar-bot:#2a4a80; --wheel-label:#c88; }
+  .theme-silver { --body-top:#d8d8d8; --body-bot:#b0b0b0; --wheel-out:#c0c0c0; --wheel-in:#a8a8a8; --btn-center:#b8b8b8; --border:#909090; --titlebar-top:#4a6fa5; --titlebar-bot:#2a4a80; --wheel-label:#555; }
+  .theme-gold   { --body-top:#d4a84b; --body-bot:#a07830; --wheel-out:#9a7228; --wheel-in:#7a5818; --btn-center:#8a6220; --border:#6a4810; --titlebar-top:#4a6fa5; --titlebar-bot:#2a4a80; --wheel-label:#555; }
+  .theme-white  { --body-top:#f0ede8; --body-bot:#d8d4cc; --wheel-out:#dedad4; --wheel-in:#c8c4bc; --btn-center:#d0ccc4; --border:#a8a49c; --titlebar-top:#4a6fa5; --titlebar-bot:#2a4a80; --wheel-label:#555; }
+
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; user-select:none; }
+
+  html, body {
+    height:100%; width:100%;
+    background:#1a1a1a;
+    display:flex; align-items:center; justify-content:center;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    overflow:hidden;
+  }
+
+  /* ── CUERPO IPOD ── */
+  .ipod {
+    width: var(--ipod-w);
+    background: linear-gradient(160deg, var(--body-top) 0%, var(--body-bot) 100%);
+    border-radius: 36px;
+    padding: 18px 18px 24px;
+    box-shadow:
+      0 30px 80px rgba(0,0,0,0.6),
+      inset 0 1px 0 rgba(255,255,255,0.6),
+      inset 0 -1px 0 rgba(0,0,0,0.15);
+    border: 1px solid #909090;
+    position: relative;
+  }
+
+  /* ── PANTALLA ── */
+  .screen-wrap {
+    background: #111;
+    border-radius: 8px;
+    padding: 3px;
+    box-shadow: inset 0 2px 8px rgba(0,0,0,0.8), 0 1px 0 rgba(255,255,255,0.3);
+    margin-bottom: 18px;
+  }
+
+  .screen {
+    background: #fff;
+    border-radius: 5px;
+    height: 220px;
+    overflow: hidden;
+    position: relative;
+    font-size: 13px;
+  }
+
+  /* Now Playing y Cover Flow fondo blanco */
+  #view-np { background: #fff; }
+  #view-cf .cf-wrap { background: #fff; }
+
+  /* Barra de título */
+  .title-bar {
+    background: linear-gradient(180deg, var(--titlebar-top) 0%, var(--titlebar-bot) 100%);
+    height: 20px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 8px;
+    font-size: 11px;
+    font-weight: bold;
+    color: #fff;
+  }
+
+  .title-bar .battery {
+    display: flex; align-items: center; gap: 2px;
+    font-size: 9px;
+  }
+  .battery-icon {
+    width: 18px; height: 9px;
+    border: 1px solid rgba(255,255,255,0.7);
+    border-radius: 2px;
+    position: relative;
+    display: flex; align-items: center;
+  }
+  .battery-icon::after {
+    content:'';
+    position:absolute; right:-4px; top:50%; transform:translateY(-50%);
+    width:3px; height:5px;
+    background:rgba(255,255,255,0.7);
+    border-radius:0 1px 1px 0;
+  }
+  .battery-fill {
+    height:5px; width:70%;
+    background:#6ddb6d;
+    margin:0 1px;
+    border-radius:1px;
+  }
+
+  /* ── VISTA MENÚ ── */
+  .view { position:absolute; top:20px; left:0; right:0; bottom:0; display:none; flex-direction:column; }
+  .view.active { display:flex; }
+
+  .menu-list {
+    flex:1; overflow:hidden;
+    display:flex; flex-direction:column;
+    background: #fff;
+  }
+
+  .menu-item {
+    display:flex; align-items:center; justify-content:space-between;
+    padding: 0 10px;
+    height: 24px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #000;
+    border-bottom: 1px solid #ddd;
+    flex-shrink: 0;
+  }
+
+  .menu-item.selected {
+    background: linear-gradient(180deg, #4a8fe8 0%, #2a6fd8 100%);
+    color: #fff;
+    border-bottom-color: #2a6fd8;
+  }
+
+  .menu-item .arrow { opacity: 0.4; font-size: 10px; }
+
+  /* ── VISTA NOW PLAYING ── */
+  #view-np { background:#fff; }
+  .now-playing {
+    flex:1; display:flex; flex-direction:column;
+    padding: 8px 8px 4px;
+  }
+
+  .np-top {
+    display:flex; flex-direction:row; gap:10px;
+    flex:1; min-height:0;
+  }
+
+  .album-art {
+    width: 90px; height: 90px;
+    flex-shrink:0;
+    border-radius: 3px;
+    background: #e8e8e8;
+    display:flex; align-items:center; justify-content:center;
+    overflow:hidden;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  }
+  .album-art img { width:100%; height:100%; object-fit:cover; }
+  .album-art .note { font-size:32px; color:#aaa; }
+
+  /* Reflejo bajo la portada */
+  .album-art-ref {
+    width:90px; height:20px; flex-shrink:0;
+    background: linear-gradient(180deg, rgba(0,0,0,0.08) 0%, transparent 100%);
+    transform: scaleY(-1);
+    overflow:hidden;
+    opacity:0.4;
+  }
+  .album-art-ref img { width:100%; height:100%; object-fit:cover; object-position:top; }
+
+  .np-info {
+    flex:1; display:flex; flex-direction:column; justify-content:center;
+    min-width:0;
+  }
+
+  .marquee-wrap { overflow:hidden; }
+  .marquee-inner { display:inline-block; white-space:nowrap; }
+  .marquee-inner.running { animation: marquee 8s linear infinite; }
+  @keyframes marquee { 0%{transform:translateX(0)} 40%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+
+  .np-title-text  { font-size:13px; font-weight:bold; color:#000; }
+  .np-artist-text { font-size:11px; color:#444; margin-top:2px; }
+  .np-album-text  { font-size:10px; color:#888; margin-top:1px; }
+
+  /* Barra de progreso */
+  .progress-wrap { margin-top:6px; }
+  .progress-bar-bg {
+    height: 3px; background:#ddd; border-radius:2px; margin-bottom:3px; position:relative;
+  }
+  .progress-bar-fill {
+    height:100%; background:#888;
+    border-radius:2px; width:0%;
+    transition: width 0.5s linear;
+  }
+  .progress-dot {
+    width:7px; height:7px; background:#555;
+    border-radius:50%; position:absolute;
+    top:50%; transform:translateY(-50%); left:0%;
+    transition: left 0.5s linear;
+  }
+  .progress-times {
+    display:flex; justify-content:space-between;
+    font-size:9px; color:#999;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .playback-icons {
+    display:flex; justify-content:center; align-items:center; gap:16px;
+    margin-top:4px;
+  }
+  .np-btn { display:flex; align-items:center; justify-content:center; color:#888; }
+  .np-btn.play-state { color:#000; }
+
+  .playback-meta {
+    display:flex; justify-content:space-between;
+    font-size:9px; color:#bbb; padding:0 2px; margin-top:2px;
+  }
+  .playback-meta span.on { color: var(--screen-accent); }
+
+  /* ── SEPARADOR ── */
+  .divider {
+    height: 10px;
+    background: linear-gradient(180deg, #b0ac a4 0%, #c8c4bc 100%);
+    margin: 0 -18px;
+    border-top: 1px solid #909090;
+    border-bottom: 1px solid #d0ccc4;
+  }
+
+  /* ── CLICK WHEEL ── */
+  .wheel-wrap {
+    display:flex; align-items:center; justify-content:center;
+    padding: 10px 0 4px;
+  }
+
+  .wheel {
+    width: calc(var(--ipod-w) - 60px);
+    height: calc(var(--ipod-w) - 60px);
+    max-width: 240px; max-height:240px;
+    position:relative;
+    touch-action: none;
+  }
+
+  .wheel-outer {
+    width:100%; height:100%;
+    border-radius:50%;
+    background: radial-gradient(circle at 35% 30%, var(--wheel-out), var(--wheel-in));
+    box-shadow:
+      0 4px 16px rgba(0,0,0,0.4),
+      inset 0 1px 0 rgba(255,255,255,0.15),
+      inset 0 -1px 0 rgba(0,0,0,0.2);
+    border: 1px solid var(--border);
+    position:relative;
+    display:flex; align-items:center; justify-content:center;
+  }
+
+  /* Labels de la rueda */
+  .wheel-label {
+    position:absolute;
+    font-size: 9px;
+    font-weight: bold;
+    color: var(--wheel-label, #555);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .wl-menu  { top: 9%; left:50%; transform:translateX(-50%); }
+  .wl-back  { left: 7%; top:50%; transform:translateY(-50%); }
+  .wl-fwd   { right:7%; top:50%; transform:translateY(-50%); }
+  .wl-play  { bottom:9%; left:50%; transform:translateX(-50%); }
+
+  .wl-back-icon, .wl-fwd-icon, .wl-play-icon {
+    position:absolute;
+    display:flex; align-items:center; justify-content:center;
+    color: var(--wheel-label, #555);
+  }
+  .wl-back-icon { left:7%; top:50%; transform:translateY(-50%); }
+  .wl-fwd-icon  { right:7%; top:50%; transform:translateY(-50%); }
+  .wl-play-icon { bottom:9%; left:50%; transform:translateX(-50%); }
+
+  /* Botón central */
+  .wheel-center {
+    width: 40%;
+    height: 40%;
+    border-radius: 50%;
+    background: radial-gradient(circle at 40% 35%, var(--wheel-out), var(--btn-center));
+    box-shadow:
+      0 2px 6px rgba(0,0,0,0.3),
+      inset 0 1px 0 rgba(255,255,255,0.15);
+    border: 1px solid var(--border);
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    transition: transform 0.08s, box-shadow 0.08s;
+    z-index:2;
+  }
+  .wheel-center:active, .wheel-center.pressed {
+    transform: scale(0.96);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1);
+  }
+
+  /* Zonas táctiles de la rueda (invisible, encima del SVG) */
+  .wheel-zone {
+    position:absolute;
+    cursor:pointer;
+    z-index:3;
+  }
+  .wz-top    { top:0; left:20%; width:60%; height:28%; border-radius:50% 50% 0 0; }
+  .wz-left   { top:20%; left:0; width:28%; height:60%; border-radius:50% 0 0 50%; }
+  .wz-right  { top:20%; right:0; width:28%; height:60%; border-radius:0 50% 50% 0; }
+  .wz-bottom { bottom:0; left:20%; width:60%; height:28%; border-radius:0 0 50% 50%; }
+
+  .wheel-zone:active { background:rgba(0,0,0,0.05); }
+
+  /* ── LOADING SCREEN ── */
+  .loading-screen {
+    position:fixed; inset:0;
+    background:#1a1a1a;
+    display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
+    gap:16px;
+    z-index:999;
+    transition: opacity 0.5s;
+  }
+  .loading-screen.hidden { opacity:0; pointer-events:none; }
+
+  .loading-apple {
+    font-size:48px;
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:0.4} 50%{opacity:1} }
+
+  .loading-bar-wrap {
+    width:120px; height:4px;
+    background:#333; border-radius:2px; overflow:hidden;
+  }
+  .loading-bar {
+    height:100%; width:0%;
+    background:#fff; border-radius:2px;
+    animation: load 1.5s ease forwards;
+  }
+  @keyframes load { to { width:100% } }
+
+  /* ── FILE PICKER OVERLAY ── */
+  .file-overlay {
+    position:fixed; inset:0;
+    background:rgba(0,0,0,0.85);
+    display:flex; align-items:center; justify-content:center;
+    z-index:998;
+    padding:20px;
+  }
+  .file-overlay.hidden { display:none; }
+
+  .file-card {
+    background:#222;
+    border-radius:16px;
+    padding:24px;
+    text-align:center;
+    max-width:280px;
+    border:1px solid #444;
+  }
+  .file-card h2 { color:#fff; font-size:18px; margin-bottom:8px; }
+  .file-card p  { color:#888; font-size:13px; line-height:1.5; margin-bottom:20px; }
+
+  .pick-btn {
+    display:inline-block;
+    background:var(--screen-accent);
+    color:#fff;
+    padding:12px 28px;
+    border-radius:24px;
+    font-size:15px;
+    font-weight:bold;
+    cursor:pointer;
+    margin-bottom:10px;
+    transition: opacity 0.15s;
+  }
+  .pick-btn:active { opacity:0.8; }
+
+  .file-tip { color:#555; font-size:11px; }
+
+  #file-input { display:none; }
+
+  /* ── MINI MARQUEE para títulos largos ── */
+  .marquee-wrap { overflow:hidden; }
+  .marquee-inner { display:inline-block; white-space:nowrap; }
+  .marquee-inner.running {
+    animation: marquee 8s linear infinite;
+  }
+  @keyframes marquee { 0%{transform:translateX(0)} 40%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+
+  /* ── DARK SHIMMER en pantalla ── */
+  .screen::after {
+    content:'';
+    position:absolute; inset:0;
+    background:linear-gradient(135deg, rgba(255,255,255,0.03) 0%, transparent 60%);
+    pointer-events:none;
+  }
+
+  /* Scrollbar oculta */
+  ::-webkit-scrollbar { display:none; }
+
+  /* ── COVER FLOW ── */
+  .cf-wrap {
+    flex:1; position:relative; overflow:hidden;
+    background: linear-gradient(180deg, #2a2a2a 0%, #000 55%, #111 100%);
+    display:flex; flex-direction:column;
+  }
+  .cf-stage {
+    flex:1; position:relative;
+    display:flex; align-items:center; justify-content:center;
+    perspective: 500px;
+    overflow:hidden;
+  }
+  .cf-card {
+    position:absolute;
+    width:96px; height:96px;
+    border-radius:3px;
+    overflow:visible;
+    transition: transform 0.35s cubic-bezier(.4,0,.2,1), opacity 0.35s;
+    cursor:pointer;
+    backface-visibility:hidden;
+  }
+  .cf-card-img {
+    width:96px; height:96px;
+    border-radius:3px;
+    overflow:hidden;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.7);
+  }
+  .cf-card-img img { width:100%; height:100%; object-fit:cover; display:block; }
+  .cf-card-img .cf-note {
+    width:100%; height:100%;
+    background: #2a2a2a;
+    display:flex; align-items:center; justify-content:center;
+    font-size:36px; color:#555;
+  }
+  /* Reflejo */
+  .cf-reflection {
+    width:96px; height:40px;
+    overflow:hidden;
+    transform: scaleY(-1);
+    opacity:0.35;
+    mask-image: linear-gradient(to bottom, rgba(0,0,0,0.6), transparent);
+    -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,0.6), transparent);
+    margin-top:1px;
+  }
+  .cf-reflection img { width:100%; height:96px; object-fit:cover; object-position:top; display:block; }
+  .cf-reflection .cf-note-ref {
+    width:100%; height:96px; background:#2a2a2a;
+  }
+
+  .cf-info {
+    height:40px;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:1px; padding:0 8px;
+    background:#fff;
+    border-top: 1px solid #ddd;
+  }
+  .cf-info-title  { font-size:12px; font-weight:bold; color:#000; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; text-align:center; }
+  .cf-info-artist { font-size:10px; color:#666; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; }
+  .cf-floor { display:none; }
+</style>
+</head>
+<body>
+
+<!-- Pantalla de carga -->
+<div class="loading-screen" id="loading">
+  <div class="loading-apple">🍎</div>
+  <div class="loading-bar-wrap"><div class="loading-bar"></div></div>
+</div>
+
+<!-- Selector de archivos -->
+<div class="file-overlay hidden" id="file-overlay">
+  <div class="file-card">
+    <h2>iPod</h2>
+    <p>Carga tu música para comenzar. Puedes seleccionar varios archivos MP3, M4A o FLAC a la vez.</p>
+    <label class="pick-btn" for="file-input">Cargar música</label>
+    <input type="file" id="file-input" accept=".mp3,.m4a,.aac,.wav,.flac,.ogg,.opus,.aiff,.aif" multiple>
+    <p class="file-tip">Los archivos se quedan en tu dispositivo.<br>Nada se sube a internet.</p>
+    <div id="cancel-btn" style="display:none; margin-top:14px; color:#888; font-size:14px; cursor:pointer; padding:8px;" onclick="closeFilePicker()">Cancelar</div>
+  </div>
+</div>
+
+<!-- iPod -->
+<div class="ipod">
+
+  <!-- Pantalla -->
+  <div class="screen-wrap">
+    <div class="screen">
+
+      <!-- Barra de título -->
+      <div class="title-bar">
+        <span id="title-text">Music</span>
+        <div class="battery">
+          <div class="battery-icon"><div class="battery-fill"></div></div>
+        </div>
+      </div>
+
+      <!-- Vista: Cover Flow -->
+      <div class="view" id="view-cf">
+        <div class="cf-wrap">
+          <div class="cf-stage" id="cf-stage"></div>
+          <div class="cf-floor"></div>
+          <div class="cf-info">
+            <div class="cf-info-title"  id="cf-title">—</div>
+            <div class="cf-info-artist" id="cf-artist">—</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Vista: Menú principal -->
+      <div class="view active" id="view-main">
+        <div class="menu-list" id="menu-main"></div>
+      </div>
+
+      <!-- Vista: Lista (artistas / álbumes / canciones) -->
+      <div class="view" id="view-list">
+        <div class="menu-list" id="menu-list"></div>
+      </div>
+
+      <!-- Vista: Now Playing -->
+      <div class="view" id="view-np">
+        <div class="now-playing">
+          <div class="np-top">
+            <div style="display:flex;flex-direction:column;">
+              <div class="album-art" id="album-art"><span class="note">♪</span></div>
+            </div>
+            <div class="np-info">
+              <div class="marquee-wrap">
+                <div class="marquee-inner np-title-text" id="np-title">—</div>
+              </div>
+              <div class="np-artist-text" id="np-artist">—</div>
+              <div class="np-album-text"  id="np-album">—</div>
+            </div>
+          </div>
+          <div class="progress-wrap">
+            <div class="progress-bar-bg">
+              <div class="progress-bar-fill" id="prog-fill"></div>
+              <div class="progress-dot"      id="prog-dot"></div>
+            </div>
+            <div class="progress-times">
+              <span id="time-cur">00:00</span>
+              <span id="time-tot">-00:00</span>
+            </div>
+          </div>
+          <div class="playback-icons">
+            <span class="np-btn">
+              <svg viewBox="0 0 24 24" width="18" height="18"><polygon points="19,5 9,12 19,19" fill="currentColor"/><rect x="4" y="5" width="3" height="14" fill="currentColor"/></svg>
+            </span>
+            <span class="play-state np-btn" id="play-icon">
+              <svg id="play-svg" viewBox="0 0 24 24" width="20" height="20"><polygon points="6,4 20,12 6,20" fill="currentColor"/></svg>
+            </span>
+            <span class="np-btn">
+              <svg viewBox="0 0 24 24" width="18" height="18"><polygon points="5,5 15,12 5,19" fill="currentColor"/><rect x="16" y="5" width="3" height="14" fill="currentColor"/></svg>
+            </span>
+          </div>
+          <div class="playback-meta">
+            <span id="shuffle-lbl">Aleatorio</span>
+            <span id="repeat-lbl">Repetir</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Separador -->
+  <div class="divider"></div>
+
+  <!-- Click Wheel -->
+  <div class="wheel-wrap">
+    <div class="wheel" id="wheel">
+      <div class="wheel-outer">
+        <span class="wheel-label wl-menu">MENU</span>
+        <!-- Atrás: doble triángulo izquierda + barra -->
+        <span class="wl-back-icon">
+          <svg viewBox="0 0 28 18" width="22" height="14"><polygon points="18,1 8,9 18,17" fill="currentColor"/><polygon points="10,1 0,9 10,17" fill="currentColor"/><rect x="20" y="1" width="3" height="16" fill="currentColor" rx="1"/></svg>
+        </span>
+        <!-- Adelante: doble triángulo derecha + barra -->
+        <span class="wl-fwd-icon">
+          <svg viewBox="0 0 28 18" width="22" height="14"><polygon points="10,1 20,9 10,17" fill="currentColor"/><polygon points="18,1 28,9 18,17" fill="currentColor"/><rect x="5" y="1" width="3" height="16" fill="currentColor" rx="1"/></svg>
+        </span>
+        <!-- Play/Pause -->
+        <span class="wl-play-icon">
+          <svg viewBox="0 0 32 18" width="26" height="14"><polygon points="0,1 10,9 0,17" fill="currentColor"/><rect x="14" y="1" width="4" height="16" fill="currentColor" rx="1"/><rect x="21" y="1" width="4" height="16" fill="currentColor" rx="1"/></svg>
+        </span>
+        <div class="wheel-center" id="btn-center"></div>
+        <!-- Zonas táctiles -->
+        <div class="wheel-zone wz-top"    id="wz-menu"></div>
+        <div class="wheel-zone wz-left"   id="wz-back"></div>
+        <div class="wheel-zone wz-right"  id="wz-fwd"></div>
+        <div class="wheel-zone wz-bottom" id="wz-play"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ─── LECTOR ID3 PROPIO (v2.2, v2.3, v2.4) ────────────────
+const ID3 = {
+  async read(file) {
+    const buf = await file.arrayBuffer();
+    const bytes = new Uint8Array(buf);
+    const result = { title: null, artist: null, album: null, art: null };
+    if (bytes[0] !== 0x49 || bytes[1] !== 0x44 || bytes[2] !== 0x33) return result;
+    const version = bytes[3];
+    const flags   = bytes[5];
+    const hasExtHeader = (flags & 0x40) !== 0;
+    const tagSize = ((bytes[6]&0x7f)<<21)|((bytes[7]&0x7f)<<14)|((bytes[8]&0x7f)<<7)|(bytes[9]&0x7f);
+    let pos = 10;
+    if (hasExtHeader) {
+      const extSize = version === 4
+        ? ((bytes[10]&0x7f)<<21)|((bytes[11]&0x7f)<<14)|((bytes[12]&0x7f)<<7)|(bytes[13]&0x7f)
+        : (bytes[10]<<24)|(bytes[11]<<16)|(bytes[12]<<8)|bytes[13];
+      pos += extSize;
+    }
+    const end = 10 + tagSize;
+    const textKeyMap = version === 2
+      ? { TT2:'title', TP1:'artist', TAL:'album' }
+      : { TIT2:'title', TPE1:'artist', TALB:'album' };
+    while (pos < end - 10) {
+      let frameId, frameSize, frameStart;
+      if (version === 2) {
+        frameId    = String.fromCharCode(bytes[pos], bytes[pos+1], bytes[pos+2]);
+        frameSize  = (bytes[pos+3]<<16)|(bytes[pos+4]<<8)|bytes[pos+5];
+        frameStart = pos + 6;
+      } else {
+        frameId = String.fromCharCode(bytes[pos],bytes[pos+1],bytes[pos+2],bytes[pos+3]);
+        frameSize = version === 4
+          ? ((bytes[pos+4]&0x7f)<<21)|((bytes[pos+5]&0x7f)<<14)|((bytes[pos+6]&0x7f)<<7)|(bytes[pos+7]&0x7f)
+          : (bytes[pos+4]<<24)|(bytes[pos+5]<<16)|(bytes[pos+6]<<8)|bytes[pos+7];
+        frameStart = pos + 10;
+      }
+      pos = frameStart + frameSize;
+      if (frameSize <= 0 || frameSize > 10_000_000) break;
+      const fb = bytes.slice(frameStart, frameStart + frameSize);
+      if (textKeyMap[frameId]) {
+        const enc = fb[0];
+        let text = '';
+        try {
+          if (enc === 0)      text = new TextDecoder('latin1').decode(fb.slice(1));
+          else if (enc === 3) text = new TextDecoder('utf-8').decode(fb.slice(1));
+          else if (enc === 1 || enc === 2) {
+            const hasBOM = (fb[1]===0xFF&&fb[2]===0xFE)||(fb[1]===0xFE&&fb[2]===0xFF);
+            text = new TextDecoder('utf-16').decode(fb.slice(hasBOM?1:1));
+          }
+        } catch(_) {}
+        result[textKeyMap[frameId]] = text.replace(/\0/g,'').trim();
+      }
+      if (frameId === 'APIC' || frameId === 'PIC') {
+        try {
+          let o = 1;
+          let mime = '';
+          if (frameId === 'APIC') {
+            while (o < fb.length && fb[o] !== 0) mime += String.fromCharCode(fb[o++]);
+            o++;
+          } else {
+            mime = String.fromCharCode(fb[o],fb[o+1],fb[o+2]); o+=3;
+          }
+          o++; // picture type
+          const enc = fb[0];
+          if (enc === 1 || enc === 2) {
+            while (o < fb.length-1 && !(fb[o]===0&&fb[o+1]===0)) o++;
+            o += 2;
+          } else {
+            while (o < fb.length && fb[o] !== 0) o++;
+            o++;
+          }
+          const mimeType = mime.toLowerCase().includes('png') ? 'image/png' : 'image/jpeg';
+          result.art = URL.createObjectURL(new Blob([fb.slice(o)], { type: mimeType }));
+        } catch(_) {}
+      }
+    }
+    return result;
+  }
+};
+
+// ─── ESTADO ───────────────────────────────────────────────
+const state = {
+  tracks: [],          // { file, title, artist, album, art }
+  queue: [],           // índices ordenados para reproducir
+  queueIdx: 0,
+  shuffle: false,
+  repeat: false,       // 'none' | 'one' | 'all'
+  repeatMode: 0,       // 0=none 1=all 2=one
+  theme: 0,            // 0=blanco 1=negro 2=rojo 3=plateado 4=dorado
+
+  // Navegación
+  nav: [],             // pila de vistas
+  currentView: 'main',
+  menuIdx: 0,
+  listItems: [],
+  listCtx: null,       // { type: 'songs'|'artist'|'album', value }
+};
+
+const audio = new Audio();
+audio.preload = 'auto';
+
+// ─── AUDIO EN SEGUNDO PLANO (iOS) ─────────────────────────
+// iOS necesita que el audio se inicie desde un gesto del usuario
+// y que la sesión se marque como activa para seguir en background
+document.addEventListener('touchstart', function unlockAudio() {
+  const buf = audio.context?.createBuffer?.(1, 1, 22050);
+  if (buf) {
+    const src = audio.context.createBufferSource();
+    src.buffer = buf;
+    src.connect(audio.context.destination);
+    src.start(0);
+  }
+  // Asegurar que el elemento audio puede reproducirse en background
+  audio.play().catch(() => {}).finally(() => audio.pause());
+  document.removeEventListener('touchstart', unlockAudio);
+}, { once: true });
+
+// ─── MENÚ PRINCIPAL ───────────────────────────────────────
+const MAIN_MENU = [
+  { label: 'Cover Flow',       icon: '◫', action: 'coverflow' },
+  { label: 'Artistas',         icon: '👤', action: 'artists' },
+  { label: 'Álbumes',          icon: '💿', action: 'albums' },
+  { label: 'Canciones',        icon: '🎵', action: 'songs' },
+  { label: 'Aleatorio total',  icon: '🔀', action: 'shuffleall' },
+  { label: 'Reproduciendo',    icon: '▶', action: 'nowplaying' },
+  { label: 'Ajustes',          icon: '⚙', action: 'settings' },
+];
+
+// ─── HELPERS TIEMPO ───────────────────────────────────────
+function fmt(s) {
+  if (!isFinite(s) || s < 0) s = 0;
+  const m = Math.floor(s/60), ss = Math.floor(s%60);
+  return `${String(m).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
+}
+
+// ─── VISTAS ───────────────────────────────────────────────
+function showView(id) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-' + id).classList.add('active');
+  state.currentView = id;
+}
+
+// ─── RENDER MENÚ ──────────────────────────────────────────
+function renderMenu(containerId, items, selectedIdx) {
+  const el = document.getElementById(containerId);
+  el.innerHTML = '';
+  items.forEach((item, i) => {
+    const div = document.createElement('div');
+    div.className = 'menu-item' + (i === selectedIdx ? ' selected' : '');
+    const label = typeof item === 'string' ? item : item.label;
+    const hasArrow = typeof item !== 'string' || true;
+    div.innerHTML = `<span>${label}</span>${hasArrow ? '<span class="arrow">›</span>' : ''}`;
+    el.appendChild(div);
+  });
+  // Scroll para mantener el item seleccionado visible
+  const items_el = el.querySelectorAll('.menu-item');
+  if (items_el[selectedIdx]) {
+    items_el[selectedIdx].scrollIntoView({ block: 'nearest' });
+  }
+}
+
+function renderMainMenu() {
+  renderMenu('menu-main', MAIN_MENU, state.menuIdx);
+  document.getElementById('title-text').textContent = 'iPod';
+}
+
+// ─── NAVEGACIÓN ───────────────────────────────────────────
+function goTo(view, title, items, ctx) {
+  state.nav.push({ view: state.currentView, title: document.getElementById('title-text').textContent, menuIdx: state.menuIdx, listItems: state.listItems, listCtx: state.listCtx });
+  state.menuIdx = 0;
+  if (view === 'list') {
+    state.listItems = items;
+    state.listCtx = ctx;
+    renderMenu('menu-list', items, 0);
+    document.getElementById('title-text').textContent = title;
+  }
+  showView(view);
+}
+
+function goBack() {
+  // Si estamos en Cover Flow viendo canciones, volver a la lista de álbumes
+  if (state.currentView === 'cf' && cfMode === 'songs') {
+    cfMode = 'albums';
+    document.getElementById('title-text').textContent = 'Cover Flow';
+    renderCoverFlow();
+    return;
+  }
+  if (state.nav.length === 0) return;
+  const prev = state.nav.pop();
+  state.menuIdx = prev.menuIdx;
+  state.listItems = prev.listItems;
+  state.listCtx = prev.listCtx;
+  document.getElementById('title-text').textContent = prev.title;
+  if (prev.view === 'main') {
+    renderMainMenu();
+    showView('main');
+  } else if (prev.view === 'list') {
+    renderMenu('menu-list', state.listItems, state.menuIdx);
+    showView('list');
+  } else {
+    showView(prev.view);
+  }
+}
+
+// ─── ACCIONES MENÚ ────────────────────────────────────────
+function handleSelect() {
+  if (state.currentView === 'np') { togglePlay(); return; }
+  if (state.currentView === 'cf') {
+    if (cfMode === 'albums') enterCfAlbum();
+    else playCfSong();
+    return;
+  }
+
+  if (state.currentView === 'main') {
+    const item = MAIN_MENU[state.menuIdx];
+    switch(item.action) {
+      case 'coverflow':
+        if (state.tracks.length === 0) { showMsg('Ve a Ajustes → Cargar música'); return; }
+        openCoverFlow();
+        break;
+      case 'shuffleall':
+        if (state.tracks.length === 0) { showMsg('Ve a Ajustes → Cargar música'); return; }
+        state.shuffle = true;
+        updateShuffleRepeatUI();
+        const allIdxs = state.tracks.map((_,i) => i);
+        playQueue(allIdxs, Math.floor(Math.random() * allIdxs.length));
+        break;
+      case 'music':
+      case 'songs':
+        if (state.tracks.length === 0) { showMsg('Ve a Ajustes → Cargar música'); return; }
+        const songs = state.tracks.map((t,i) => ({ label: t.title, idx: i }));
+        goTo('list', 'Canciones', songs, { type: 'songs' });
+        break;
+      case 'artists':
+        if (state.tracks.length === 0) { showMsg('Ve a Ajustes → Cargar música'); return; }
+        const artists = [...new Set(
+          state.tracks.flatMap(t =>
+            t.artist.split(/,|&|feat\.|ft\.|\/|\+/i).map(a => a.trim()).filter(Boolean)
+          )
+        )].sort();
+        goTo('list', 'Artistas', artists, { type: 'artists' });
+        break;
+      case 'albums':
+        if (state.tracks.length === 0) { showMsg('Ve a Ajustes → Cargar música'); return; }
+        const albums = [...new Set(state.tracks.map(t => t.album))].sort();
+        goTo('list', 'Álbumes', albums, { type: 'albums' });
+        break;
+      case 'nowplaying':
+        if (state.tracks.length === 0) { showMsg('Ve a Ajustes → Cargar música'); return; }
+        state.nav.push({ view:'main', title:'iPod', menuIdx: state.menuIdx, listItems:[], listCtx:null });
+        showView('np');
+        document.getElementById('title-text').textContent = 'Reproduciendo';
+        break;
+      case 'settings':
+        const sets = [
+          'Aleatorio: ' + (state.shuffle ? 'Sí' : 'No'),
+          'Repetir: ' + ['No','Todo','Una'][state.repeatMode],
+          'Tema: ' + ['Blanco','Negro','Rojo','Plateado','Dorado'][state.theme],
+          'Cargar música'
+        ];
+        goTo('list', 'Ajustes', sets, { type: 'settings' });
+        break;
+    }
+    return;
+  }
+
+  if (state.currentView === 'list') {
+    const ctx = state.listCtx;
+    const idx = state.menuIdx;
+
+    if (ctx.type === 'settings') {
+      if (idx === 0) {
+        state.shuffle = !state.shuffle; updateShuffleRepeatUI();
+      } else if (idx === 1) {
+        state.repeatMode = (state.repeatMode+1)%3; updateShuffleRepeatUI();
+      } else if (idx === 2) {
+        state.theme = (state.theme + 1) % 5;
+        applyTheme();
+      } else if (idx === 3) {
+        openFilePicker(); return;
+      }
+      const sets = [
+        'Aleatorio: ' + (state.shuffle?'Sí':'No'),
+        'Repetir: ' + ['No','Todo','Una'][state.repeatMode],
+        'Tema: ' + ['Blanco','Negro','Rojo','Plateado','Dorado'][state.theme],
+        'Cargar música'
+      ];
+      state.listItems = sets;
+      renderMenu('menu-list', sets, idx);
+      return;
+    }
+
+    if (ctx.type === 'songs') {
+      const trackIdx = state.tracks.findIndex((t,i) => {
+        const songs = state.tracks.map((t2,i2) => ({ label: t2.title, idx: i2 }));
+        return songs[idx].idx === i;
+      });
+      // Reproducir desde la lista de canciones
+      const allIdxs = state.tracks.map((_,i) => i);
+      playQueue(allIdxs, idx);
+      return;
+    }
+
+    if (ctx.type === 'artists') {
+      const artist = state.listItems[idx];
+      const filtered = state.tracks.map((t,i)=>({t,i})).filter(({t}) => {
+        const parts = t.artist.split(/,|&|feat\.|ft\.|\/|\+/i).map(a => a.trim());
+        return parts.some(p => p.toLowerCase() === artist.toLowerCase());
+      });
+      const songs = filtered.map(({t,i})=>({ label: t.title, idx: i }));
+      goTo('list', artist, songs, { type:'songs-filtered', idxs: filtered.map(({i})=>i) });
+      return;
+    }
+
+    if (ctx.type === 'albums') {
+      const album = state.listItems[idx];
+      const filtered = state.tracks.map((t,i)=>({t,i})).filter(({t})=>t.album===album);
+      const songs = filtered.map(({t,i})=>({ label: t.title, idx: i }));
+      goTo('list', album, songs, { type:'songs-filtered', idxs: filtered.map(({i})=>i) });
+      return;
+    }
+
+    if (ctx.type === 'songs-filtered') {
+      playQueue(ctx.idxs, idx);
+      return;
+    }
+  }
+}
+
+function playQueue(idxs, startAt) {
+  state.queue = state.shuffle ? shuffle([...idxs]) : [...idxs];
+  state.queueIdx = state.shuffle ? 0 : startAt;
+  // Si shuffle, aseguramos que la canción elegida esté primera
+  if (state.shuffle) {
+    const chosen = idxs[startAt];
+    const pos = state.queue.indexOf(chosen);
+    if (pos > 0) { state.queue.splice(pos,1); state.queue.unshift(chosen); }
+  }
+  playTrack(state.queue[state.queueIdx]);
+  // Ir a Now Playing
+  state.nav.push({ view: state.currentView, title: document.getElementById('title-text').textContent, menuIdx: state.menuIdx, listItems: state.listItems, listCtx: state.listCtx });
+  showView('np');
+  document.getElementById('title-text').textContent = 'Now Playing';
+}
+
+function shuffle(arr) {
+  for (let i=arr.length-1; i>0; i--) {
+    const j = Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]]=[arr[j],arr[i]];
+  }
+  return arr;
+}
+
+// ─── REPRODUCCIÓN ─────────────────────────────────────────
+function playTrack(idx) {
+  const t = state.tracks[idx];
+  if (!t) return;
+  audio.src = URL.createObjectURL(t.file);
+  audio.play();
+  updateNowPlaying(t);
+  updateMediaSession(t);
+}
+
+function updateMediaSession(t) {
+  if (!('mediaSession' in navigator)) return;
+
+  // Registrar handlers una sola vez — iOS necesita verlos antes de que empiece el audio
+  navigator.mediaSession.setActionHandler('play',          () => { audio.play();  setPlayIcon(false); navigator.mediaSession.playbackState = 'playing'; });
+  navigator.mediaSession.setActionHandler('pause',         () => { audio.pause(); setPlayIcon(true);  navigator.mediaSession.playbackState = 'paused';  });
+  navigator.mediaSession.setActionHandler('previoustrack', () => playPrev());
+  navigator.mediaSession.setActionHandler('nexttrack',     () => playNext());
+  // Registrar seek handlers vacíos — iOS muestra ⏮⏭ cuando estos están definidos pero no hacen seek
+  try { navigator.mediaSession.setActionHandler('seekbackward', () => {}); } catch(_) {}
+  try { navigator.mediaSession.setActionHandler('seekforward',  () => {}); } catch(_) {}
+
+  navigator.mediaSession.playbackState = 'playing';
+
+  // Convertir portada a base64 via canvas para máxima compatibilidad con iOS
+  const setMeta = (artSrc) => {
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title:  t.title,
+      artist: t.artist,
+      album:  t.album,
+      artwork: artSrc ? [
+        { src: artSrc, sizes: '512x512', type: 'image/png' },
+        { src: artSrc, sizes: '256x256', type: 'image/png' },
+        { src: artSrc, sizes: '128x128', type: 'image/png' },
+      ] : [],
+    });
+  };
+
+  if (t.art) {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = canvas.height = 512;
+        canvas.getContext('2d').drawImage(img, 0, 0, 512, 512);
+        setMeta(canvas.toDataURL('image/png'));
+      } catch(_) {
+        setMeta(t.art);
+      }
+    };
+    img.onerror = () => setMeta(null);
+    img.src = t.art;
+  } else {
+    setMeta(null);
+  }
+}
+
+function updateNowPlaying(t) {
+  const titleEl = document.getElementById('np-title');
+  const wrap    = titleEl.parentElement;
+  titleEl.textContent = t.title;
+  titleEl.classList.remove('running');
+
+  document.getElementById('np-artist').textContent = t.artist;
+  document.getElementById('np-album').textContent  = t.album;
+  setPlayIcon(false);
+
+  const art    = document.getElementById('album-art');
+  const artRef = document.getElementById('album-art-ref');
+  if (t.art) {
+    art.innerHTML    = `<img src="${t.art}" alt="cover">`;
+    artRef.innerHTML = `<img src="${t.art}" alt="" style="width:100%;height:90px;object-fit:cover;object-position:top;">`;
+  } else {
+    art.innerHTML    = '<span class="note">♪</span>';
+    artRef.innerHTML = '';
+  }
+
+  requestAnimationFrame(() => {
+    const needsScroll = titleEl.scrollWidth > wrap.clientWidth;
+    if (needsScroll) {
+      titleEl.textContent = t.title + '     ' + t.title + '     ';
+      titleEl.classList.add('running');
+    }
+  });
+}
+
+// SVG play/pause helper
+function setPlayIcon(paused) {
+  const el = document.getElementById('play-svg');
+  if (!el) return;
+  if (paused) {
+    el.setAttribute('viewBox','0 0 24 24');
+    el.innerHTML = '<polygon points="6,4 20,12 6,20" fill="currentColor"/>';
+  } else {
+    el.setAttribute('viewBox','0 0 24 24');
+    el.innerHTML = '<rect x="5" y="4" width="4" height="16" fill="currentColor" rx="1"/><rect x="15" y="4" width="4" height="16" fill="currentColor" rx="1"/>';
+  }
+}
+
+function togglePlay() {
+  if (audio.paused) {
+    audio.play();
+    setPlayIcon(false);
+  } else {
+    audio.pause();
+    setPlayIcon(true);
+  }
+}
+
+function playNext() {
+  if (state.repeatMode === 2) { audio.currentTime=0; audio.play(); return; }
+  state.queueIdx++;
+  if (state.queueIdx >= state.queue.length) {
+    if (state.repeatMode === 1) state.queueIdx = 0;
+    else { state.queueIdx = state.queue.length-1; audio.pause(); setPlayIcon(true); return; }
+  }
+  playTrack(state.queue[state.queueIdx]);
+}
+
+function playPrev() {
+  if (audio.currentTime > 3) { audio.currentTime=0; return; }
+  state.queueIdx--;
+  if (state.queueIdx < 0) state.queueIdx = 0;
+  playTrack(state.queue[state.queueIdx]);
+}
+
+audio.addEventListener('ended', playNext);
+audio.addEventListener('timeupdate', () => {
+  if (!isFinite(audio.duration)) return;
+  const pct       = (audio.currentTime / audio.duration) * 100;
+  const remaining = audio.duration - audio.currentTime;
+  document.getElementById('prog-fill').style.width = pct + '%';
+  document.getElementById('prog-dot').style.left   = pct + '%';
+  document.getElementById('time-cur').textContent  = fmt(audio.currentTime);
+  document.getElementById('time-tot').textContent  = '-' + fmt(remaining);
+});
+
+function updateShuffleRepeatUI() {
+  const sl = document.getElementById('shuffle-lbl');
+  const rl = document.getElementById('repeat-lbl');
+  sl.textContent = 'Aleatorio' + (state.shuffle ? ' ✓' : '');
+  sl.className = state.shuffle ? 'on' : '';
+  const rLabels = ['', 'Repetir todo', 'Repetir 1'];
+  rl.textContent = rLabels[state.repeatMode] || 'Repetir';
+  rl.className   = state.repeatMode > 0 ? 'on' : '';
+}
+
+// ─── SCROLL RUEDA (gestos giratorios) ─────────────────────
+let wheelAngle = 0;
+let lastAngle  = null;
+let angleDelta = 0;
+const SCROLL_THRESHOLD = 18;
+
+function getAngle(cx, cy, touch) {
+  const rect = document.getElementById('wheel').getBoundingClientRect();
+  const x = touch.clientX - rect.left - rect.width/2;
+  const y = touch.clientY - rect.top  - rect.height/2;
+  return Math.atan2(y, x) * (180/Math.PI);
+}
+
+document.getElementById('wheel').addEventListener('touchstart', e => {
+  const t = e.touches[0];
+  lastAngle = getAngle(0, 0, t);
+  angleDelta = 0;
+}, { passive:true });
+
+document.getElementById('wheel').addEventListener('touchmove', e => {
+  e.preventDefault();
+  const t = e.touches[0];
+
+  // Ignorar si toca el centro
+  const rect = document.getElementById('wheel').getBoundingClientRect();
+  const cx = rect.left + rect.width/2;
+  const cy = rect.top  + rect.height/2;
+  const dx = t.clientX - cx, dy = t.clientY - cy;
+  const dist = Math.sqrt(dx*dx+dy*dy);
+  if (dist < rect.width * 0.2) return;
+
+  const angle = getAngle(0, 0, t);
+  if (lastAngle !== null) {
+    let delta = angle - lastAngle;
+    if (delta > 180) delta -= 360;
+    if (delta < -180) delta += 360;
+    angleDelta += delta;
+
+    if (Math.abs(angleDelta) >= SCROLL_THRESHOLD) {
+      if (angleDelta > 0) scrollDown();
+      else scrollUp();
+      angleDelta = 0;
+    }
+  }
+  lastAngle = angle;
+}, { passive:false });
+
+document.getElementById('wheel').addEventListener('touchend', () => { lastAngle=null; angleDelta=0; });
+
+function scrollDown() {
+  if (state.currentView === 'np') { audio.volume = Math.min(1, audio.volume + 0.05); return; }
+  if (state.currentView === 'cf') { cfScrollDown(); return; }
+  const view = state.currentView;
+  if (view === 'main') { state.menuIdx = Math.min(MAIN_MENU.length-1, state.menuIdx+1); renderMainMenu(); }
+  else if (view === 'list') { state.menuIdx = Math.min(state.listItems.length-1, state.menuIdx+1); renderMenu('menu-list', state.listItems, state.menuIdx); }
+}
+function scrollUp() {
+  if (state.currentView === 'np') { audio.volume = Math.max(0, audio.volume - 0.05); return; }
+  if (state.currentView === 'cf') { cfScrollUp(); return; }
+  const view = state.currentView;
+  if (view === 'main') { state.menuIdx = Math.max(0, state.menuIdx-1); renderMainMenu(); }
+  else if (view === 'list') { state.menuIdx = Math.max(0, state.menuIdx-1); renderMenu('menu-list', state.listItems, state.menuIdx); }
+}
+
+// ─── BOTONES RUEDA ────────────────────────────────────────
+document.getElementById('wz-menu').addEventListener('click',   goBack);
+document.getElementById('wz-back').addEventListener('click',   playPrev);
+document.getElementById('wz-fwd').addEventListener('click',    playNext);
+document.getElementById('wz-play').addEventListener('click',   togglePlay);
+document.getElementById('btn-center').addEventListener('click', handleSelect);
+
+// ─── INDEXEDDB ────────────────────────────────────────────
+const DB_NAME = 'ipodDB', DB_VER = 1, DB_STORE = 'tracks';
+let db = null;
+
+function openDB() {
+  return new Promise((res, rej) => {
+    const req = indexedDB.open(DB_NAME, DB_VER);
+    req.onupgradeneeded = e => e.target.result.createObjectStore(DB_STORE, { keyPath: 'key' });
+    req.onsuccess = e => { db = e.target.result; res(db); };
+    req.onerror   = () => rej(req.error);
+  });
+}
+
+function dbSave(key, file, meta) {
+  return new Promise(res => {
+    const tx = db.transaction(DB_STORE, 'readwrite');
+    tx.objectStore(DB_STORE).put({ key, file, title: meta.title, artist: meta.artist, album: meta.album, artBlob: meta.artBlob || null });
+    tx.oncomplete = res; tx.onerror = res;
+  });
+}
+
+function loadTracksFromDB() {
+  return new Promise(res => {
+    const tx  = db.transaction(DB_STORE, 'readonly');
+    const req = tx.objectStore(DB_STORE).getAll();
+    req.onsuccess = () => {
+      const rows = req.result || [];
+      if (!rows.length) { res(false); return; }
+      state.tracks = rows.map(r => ({
+        file: r.file, title: r.title, artist: r.artist, album: r.album,
+        art:  r.artBlob ? URL.createObjectURL(r.artBlob) : null,
+        key:  r.key,
+      }));
+      res(true);
+    };
+    req.onerror = () => res(false);
+  });
+}
+
+// ─── CARGA DE ARCHIVOS ────────────────────────────────────
+function showMsg(msg) {
+  const el = document.getElementById('title-text');
+  const prev = el.textContent;
+  el.textContent = msg;
+  setTimeout(() => { el.textContent = prev; }, 2500);
+}
+
+function openFilePicker() {
+  document.getElementById('cancel-btn').style.display = state.tracks.length > 0 ? 'block' : 'none';
+  document.getElementById('file-overlay').classList.remove('hidden');
+}
+
+function closeFilePicker() {
+  document.getElementById('file-overlay').classList.add('hidden');
+}
+
+document.getElementById('file-input').addEventListener('change', async (e) => {
+  const files = Array.from(e.target.files);
+  if (!files.length) return;
+  document.getElementById('file-overlay').classList.add('hidden');
+  document.getElementById('title-text').textContent = 'Cargando...';
+
+  const existing = new Set(state.tracks.map(t => t.key));
+  const newTracks = [];
+  let skipped = 0;
+
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    const key  = file.name + '_' + file.size;
+    if (existing.has(key)) { skipped++; continue; }
+    existing.add(key);
+    document.getElementById('title-text').textContent = `Guardando ${i + 1}/${files.length}`;
+    const meta = await readMeta(file);
+    newTracks.push({ file, title: meta.title, artist: meta.artist, album: meta.album, art: meta.art, key });
+    if (db) await dbSave(key, file, meta);
+  }
+
+  state.tracks = [...state.tracks, ...newTracks];
+
+  if (skipped > 0) {
+    document.getElementById('title-text').textContent =
+      skipped === 1 ? '1 duplicado omitido' : `${skipped} duplicados omitidos`;
+    await new Promise(r => setTimeout(r, 2000));
+  }
+
+  renderMainMenu();
+  showView('main');
+  state.nav = [];
+  state.menuIdx = 0;
+  e.target.value = '';
+});
+
+async function readMeta(file) {
+  try {
+    const tags = await ID3.read(file);
+    let artBlob = null, art = null;
+    if (tags.art) {
+      const resp = await fetch(tags.art);
+      artBlob = await resp.blob();
+      art = tags.art;
+    }
+    return { file, title: tags.title || cleanName(file.name), artist: tags.artist || 'Artista desconocido', album: tags.album || 'Álbum desconocido', art, artBlob };
+  } catch(_) {
+    return { file, title: cleanName(file.name), artist: 'Artista desconocido', album: 'Álbum desconocido', art: null, artBlob: null };
+  }
+}
+
+function cleanName(name) {
+  return name.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ');
+}
+
+// ─── COVER FLOW ───────────────────────────────────────────
+let cfIdx = 0;
+let cfAlbums = []; // [{ name, artist, art, trackIdxs }]
+let cfMode = 'albums'; // 'albums' | 'songs'
+let cfSongIdx = 0;
+
+function buildCfAlbums() {
+  const map = {};
+  state.tracks.forEach((t, i) => {
+    const key = t.album; // solo por nombre de álbum, sin importar artista
+    if (!map[key]) map[key] = { name: t.album, artist: t.artist, art: t.art, trackIdxs: [] };
+    if (!map[key].art && t.art) map[key].art = t.art;
+    map[key].trackIdxs.push(i);
+  });
+  cfAlbums = Object.values(map).sort((a,b) => a.name.localeCompare(b.name));
+}
+
+function openCoverFlow() {
+  buildCfAlbums();
+  cfIdx = 0;
+  cfMode = 'albums';
+  // Intentar centrar en el álbum que está sonando
+  if (state.queue.length > 0) {
+    const currentAlbum = state.tracks[state.queue[state.queueIdx]]?.album;
+    const idx = cfAlbums.findIndex(a => a.name === currentAlbum);
+    if (idx >= 0) cfIdx = idx;
+  }
+  state.nav.push({ view: state.currentView, title: document.getElementById('title-text').textContent, menuIdx: state.menuIdx, listItems: state.listItems, listCtx: state.listCtx });
+  document.getElementById('title-text').textContent = 'Cover Flow';
+  renderCoverFlow();
+  showView('cf');
+}
+
+function makeCard(art, onClick) {
+  const card = document.createElement('div');
+  card.className = 'cf-card';
+  const imgWrap = document.createElement('div');
+  imgWrap.className = 'cf-card-img';
+  imgWrap.innerHTML = art ? `<img src="${art}" alt="cover">` : `<div class="cf-note">♪</div>`;
+  const ref = document.createElement('div');
+  ref.className = 'cf-reflection';
+  ref.innerHTML = art ? `<img src="${art}" alt="">` : `<div class="cf-note-ref"></div>`;
+  card.appendChild(imgWrap);
+  card.appendChild(ref);
+  card.addEventListener('click', onClick);
+  return card;
+}
+
+function renderCoverFlow() {
+  const stage = document.getElementById('cf-stage');
+  stage.innerHTML = '';
+
+  if (cfMode === 'albums') {
+    const total = cfAlbums.length;
+    if (total === 0) return;
+    const half = 2;
+    for (let offset = -half; offset <= half; offset++) {
+      const i = cfIdx + offset;
+      if (i < 0 || i >= total) continue;
+      const album = cfAlbums[i];
+      const captured = i;
+      const card = makeCard(album.art, () => {
+        if (captured === cfIdx) enterCfAlbum();
+        else { cfIdx = captured; renderCoverFlow(); }
+      });
+      const x = offset * 58, rY = offset === 0 ? 0 : (offset < 0 ? 58 : -58);
+      const z = offset === 0 ? 0 : -50, scale = offset === 0 ? 1 : 0.7;
+      const opacity = Math.abs(offset) > 2 ? 0 : (offset === 0 ? 1 : 0.8);
+      card.style.cssText = `transform:translateX(${x}px) translateZ(${z}px) rotateY(${rY}deg) scale(${scale}); opacity:${opacity}; z-index:${10-Math.abs(offset)};`;
+      stage.appendChild(card);
+    }
+    const a = cfAlbums[cfIdx];
+    document.getElementById('cf-title').textContent  = a.name !== 'Álbum desconocido' ? a.name : '—';
+    document.getElementById('cf-artist').textContent = a.artist;
+
+  } else {
+    const album = cfAlbums[cfIdx];
+    const songs = album.trackIdxs;
+    const total = songs.length;
+    const half  = 2;
+    for (let offset = -half; offset <= half; offset++) {
+      const i = cfSongIdx + offset;
+      if (i < 0 || i >= total) continue;
+      const t = state.tracks[songs[i]];
+      const captured = i;
+      const card = makeCard(t.art, () => {
+        if (captured === cfSongIdx) playCfSong();
+        else { cfSongIdx = captured; renderCoverFlow(); }
+      });
+      const x = offset * 58, rY = offset === 0 ? 0 : (offset < 0 ? 58 : -58);
+      const z = offset === 0 ? 0 : -50, scale = offset === 0 ? 1 : 0.7;
+      const opacity = Math.abs(offset) > 2 ? 0 : (offset === 0 ? 1 : 0.8);
+      card.style.cssText = `transform:translateX(${x}px) translateZ(${z}px) rotateY(${rY}deg) scale(${scale}); opacity:${opacity}; z-index:${10-Math.abs(offset)};`;
+      stage.appendChild(card);
+    }
+    const t = state.tracks[songs[cfSongIdx]];
+    document.getElementById('cf-title').textContent  = t.title;
+    document.getElementById('cf-artist').textContent = t.artist;
+  }
+}
+
+function enterCfAlbum() {
+  cfMode = 'songs';
+  cfSongIdx = 0;
+  document.getElementById('title-text').textContent = cfAlbums[cfIdx].name;
+  renderCoverFlow();
+}
+
+function playCfSong() {
+  const album = cfAlbums[cfIdx];
+  playQueue(album.trackIdxs, cfSongIdx);
+}
+
+function cfScrollDown() {
+  if (cfMode === 'albums') {
+    if (cfIdx < cfAlbums.length - 1) { cfIdx++; renderCoverFlow(); }
+  } else {
+    const total = cfAlbums[cfIdx].trackIdxs.length;
+    if (cfSongIdx < total - 1) { cfSongIdx++; renderCoverFlow(); }
+  }
+}
+
+function cfScrollUp() {
+  if (cfMode === 'albums') {
+    if (cfIdx > 0) { cfIdx--; renderCoverFlow(); }
+  } else {
+    if (cfSongIdx > 0) { cfSongIdx--; renderCoverFlow(); }
+  }
+}
+
+// ─── TEMAS ────────────────────────────────────────────────
+const THEMES = ['theme-white','theme-black','theme-red','theme-silver','theme-gold'];
+function applyTheme() {
+  const ipod = document.querySelector('.ipod');
+  ipod.classList.remove(...THEMES);
+  if (state.theme > 0) ipod.classList.add(THEMES[state.theme]);
+}
+
+// ─── INIT ─────────────────────────────────────────────────
+async function init() {
+  try { await openDB(); } catch(_) {}
+  if (db) await loadTracksFromDB();
+  document.getElementById('loading').classList.add('hidden');
+  renderMainMenu();
+  showView('main');
+  updateShuffleRepeatUI();
+}
+
+setTimeout(init, 1800);
+</script>
+</body>
+</html>
