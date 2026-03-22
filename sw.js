@@ -1,5 +1,5 @@
 const CACHE = 'ipod-v4';
-const BASE = '/iPod_iOS15';
+const BASE = '/iOS15_iPod';
 const ASSETS = [
   BASE + '/',
   BASE + '/index.html',
