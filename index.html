@@ -889,7 +889,7 @@ function handleSelect() {
       } else if (idx === 1) {
         state.repeatMode = (state.repeatMode+1)%3; updateShuffleRepeatUI();
       } else if (idx === 2) {
-        state.theme = (state.theme + 1) % 5;
+        state.theme = (state.theme + 1) % 6;
         applyTheme();
       } else if (idx === 3) {
         openFilePicker(); return;
@@ -897,7 +897,7 @@ function handleSelect() {
       const sets = [
         'Aleatorio: ' + (state.shuffle?'Sí':'No'),
         'Repetir: ' + ['No','Todo','Una'][state.repeatMode],
-        'Tema: ' + ['Blanco','Negro','Rojo','Plateado','Dorado'][state.theme],
+        'Tema: ' + ['Blanco','Negro','Rojo','Plateado','Dorado', 'Edición U2'][state.theme],
         'Cargar música'
       ];
       state.listItems = sets;
