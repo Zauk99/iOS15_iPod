@@ -39,9 +39,10 @@ if ('serviceWorker' in navigator) {
   /* ── TEMAS ── */
   .theme-black  { --body-top:#2a2a2a; --body-bot:#181818; --wheel-out:#222; --wheel-in:#181818; --btn-center:#282828; --border:#111; --titlebar-top:#222; --titlebar-bot:#111; --wheel-label:#999; }
   .theme-red    { --body-top:#a02010; --body-bot:#6e1508; --wheel-out:#5a1008; --wheel-in:#420c06; --btn-center:#520e07; --border:#380a05; --titlebar-top:#4a6fa5; --titlebar-bot:#2a4a80; --wheel-label:#c88; }
-  .theme-silver { --body-top:#d8d8d8; --body-bot:#b0b0b0; --wheel-out:#c0c0c0; --wheel-in:#a8a8a8; --btn-center:#b8b8b8; --border:#909090; --titlebar-top:#4a6fa5; --titlebar-bot:#2a4a80; --wheel-label:#555; }
+  .theme-silver { --body-top:#e2e2e2; --body-bot:#9e9e9e; --wheel-out:#f0f0f0; --wheel-in:#d8d8d8; --btn-center:#cccccc; --border:#888888; --titlebar-top:#4a6fa5; --titlebar-bot:#2a4a80; --wheel-label:#555; }
   .theme-gold   { --body-top:#d4a84b; --body-bot:#a07830; --wheel-out:#9a7228; --wheel-in:#7a5818; --btn-center:#8a6220; --border:#6a4810; --titlebar-top:#4a6fa5; --titlebar-bot:#2a4a80; --wheel-label:#555; }
   .theme-white  { --body-top:#f0ede8; --body-bot:#d8d4cc; --wheel-out:#dedad4; --wheel-in:#c8c4bc; --btn-center:#d0ccc4; --border:#a8a49c; --titlebar-top:#4a6fa5; --titlebar-bot:#2a4a80; --wheel-label:#555; }
+  .theme-u2     { --body-top:#333333; --body-bot:#000000; --wheel-out:#d50000; --wheel-in:#a00000; --btn-center:#222222; --border:#111111; --titlebar-top:#222222; --titlebar-bot:#000000; --wheel-label:#eeeeee; }
 
   * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; user-select:none; }
 
@@ -869,7 +870,7 @@ function handleSelect() {
         const sets = [
           'Aleatorio: ' + (state.shuffle ? 'Sí' : 'No'),
           'Repetir: ' + ['No','Todo','Una'][state.repeatMode],
-          'Tema: ' + ['Blanco','Negro','Rojo','Plateado','Dorado'][state.theme],
+          'Tema: ' + ['Blanco','Negro','Rojo','Plateado','Dorado', 'Edición U2'][state.theme],
           'Cargar música'
         ];
         goTo('list', 'Ajustes', sets, { type: 'settings' });
@@ -1426,7 +1427,7 @@ function cfScrollUp() {
 }
 
 // ─── TEMAS ────────────────────────────────────────────────
-const THEMES = ['theme-white','theme-black','theme-red','theme-silver','theme-gold'];
+const THEMES = ['theme-white','theme-black','theme-red','theme-silver','theme-gold', 'theme-u2'];
 function applyTheme() {
   const ipod = document.querySelector('.ipod');
   ipod.classList.remove(...THEMES);
