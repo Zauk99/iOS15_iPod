@@ -637,7 +637,9 @@ if ('serviceWorker' in navigator) {
   </div>
 
 </div>
-
+<video id="no-sleep-video" playsinline muted loop style="position:fixed; top:0; left:0; width:1px; height:1px; opacity:0.01; pointer-events:none;">
+  <source src="data:video/mp4;base64,AAAAIGZ0eXBpc29tAAACAGlzb21pc28yYXZjMW1wNDEAAAAIZnJlZQAAAAt0cmF0Y29uZgAAADxtZGF0" type="video/mp4">
+</video>
 <script>
 // ─── LECTOR ID3 PROPIO (v2.2, v2.3, v2.4) ────────────────
 const ID3 = {
@@ -1012,6 +1014,7 @@ function playTrack(idx) {
   audio.play();
   updateNowPlaying(t);
   updateMediaSession(t);
+  toggleScreenWakeLock(true);
 }
 
 function updateMediaSession(t) {
@@ -1108,9 +1111,11 @@ function togglePlay() {
   if (audio.paused) {
     audio.play();
     setPlayIcon(false);
+    toggleScreenWakeLock(true);
   } else {
     audio.pause();
     setPlayIcon(true);
+    toggleScreenWakeLock(false);
   }
 }
 
@@ -1502,6 +1507,16 @@ async function init() {
   showView('main');
   updateClock();
   updateShuffleRepeatUI();
+}
+
+function toggleScreenWakeLock(on) {
+  const video = document.getElementById('no-sleep-video');
+  if (!video) return;
+  if (on) {
+    video.play().catch(() => {});
+  } else {
+    video.pause();
+  }
 }
 
 function updateClock() {
