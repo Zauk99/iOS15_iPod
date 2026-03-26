@@ -490,6 +490,12 @@ if ('serviceWorker' in navigator) {
   .cf-info-title  { font-size:12px; font-weight:bold; color:#000; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; text-align:center; }
   .cf-info-artist { font-size:10px; color:#666; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; }
   .cf-floor { display:none; }
+
+  /* Clase que aplicaremos cuando estemos en modo scrubbing */
+  .progress-dot.active {
+    background: var(--screen-accent) !important; /* Azul en lugar de gris */
+    transform: translateY(-50%) scale(1.5); /* Se hace un poco más grande */
+  }
 </style>
 </head>
 <body>
@@ -723,6 +729,7 @@ const state = {
   theme: 0,            // 0=blanco 1=negro 2=rojo 3=plateado 4=dorado
 
   // Navegación
+  scrubbing: false,
   nav: [],             // pila de vistas
   currentView: 'main',
   menuIdx: 0,
@@ -838,7 +845,16 @@ function goBack() {
 
 // ─── ACCIONES MENÚ ────────────────────────────────────────
 function handleSelect() {
-  if (state.currentView === 'np') { togglePlay(); return; }
+  if (state.currentView === 'np') { // Tocar el botón central en "Now Playing" alterna entre volumen y progreso
+    state.scrubbing = !state.scrubbing;
+    const dot = document.getElementById('prog-dot');
+    if (dot) {
+      if (state.scrubbing) dot.classList.add('active');
+      else dot.classList.remove('active');
+    }
+    togglePlay();
+    return; 
+  }
   if (state.currentView === 'cf') {
     if (cfMode === 'albums') enterCfAlbum();
     else playCfSong();
@@ -989,6 +1005,9 @@ function shuffle(arr) {
 function playTrack(idx) {
   const t = state.tracks[idx];
   if (!t) return;
+  state.scrubbing = false; // Resetear modo búsqueda
+  const dot = document.getElementById('prog-dot');
+  if (dot) dot.classList.remove('active');
   audio.src = URL.createObjectURL(t.file);
   audio.play();
   updateNowPlaying(t);
@@ -1192,14 +1211,26 @@ document.getElementById('wheel').addEventListener('touchmove', e => {
 document.getElementById('wheel').addEventListener('touchend', () => { lastAngle=null; angleDelta=0; });
 
 function scrollDown() {
-  if (state.currentView === 'np') { audio.volume = Math.min(1, audio.volume + 0.05); return; }
+  if (state.currentView === 'np') { if (state.scrubbing) {
+      // Adelantar 5 segundos
+      audio.currentTime = Math.min(audio.duration, audio.currentTime + 5);
+    } else {
+      // Volumen (esto cambia el volumen interno del audio)
+      audio.volume = Math.min(1, audio.volume + 0.05);
+    } return; }
   if (state.currentView === 'cf') { cfScrollDown(); return; }
   const view = state.currentView;
   if (view === 'main') { state.menuIdx = Math.min(MAIN_MENU.length-1, state.menuIdx+1); renderMainMenu(); }
   else if (view === 'list') { state.menuIdx = Math.min(state.listItems.length-1, state.menuIdx+1); renderMenu('menu-list', state.listItems, state.menuIdx); }
 }
 function scrollUp() {
-  if (state.currentView === 'np') { audio.volume = Math.max(0, audio.volume - 0.05); return; }
+  if (state.currentView === 'np') { if (state.scrubbing) {
+      // Retroceder 5 segundos
+      audio.currentTime = Math.max(0, audio.currentTime - 5);
+    } else {
+      // Volumen
+      audio.volume = Math.max(0, audio.volume - 0.05);
+    } return; }
   if (state.currentView === 'cf') { cfScrollUp(); return; }
   const view = state.currentView;
   if (view === 'main') { state.menuIdx = Math.max(0, state.menuIdx-1); renderMainMenu(); }
