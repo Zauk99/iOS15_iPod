@@ -37,11 +37,11 @@ if ('serviceWorker' in navigator) {
   }
 
   /* ── TEMAS ── */
-  .theme-black  { --body-top:#2a2a2a; --body-bot:#181818; --wheel-out:#222; --wheel-in:#181818; --btn-center:#282828; --border:#111; --titlebar-top:#222; --titlebar-bot:#111; --wheel-label:#999; }
-  .theme-red    { --body-top:#a02010; --body-bot:#6e1508; --wheel-out:#5a1008; --wheel-in:#420c06; --btn-center:#520e07; --border:#380a05; --titlebar-top:#4a6fa5; --titlebar-bot:#2a4a80; --wheel-label:#c88; }
-  .theme-silver { --body-top:#e2e2e2; --body-bot:#9e9e9e; --wheel-out:#f0f0f0; --wheel-in:#d8d8d8; --btn-center:#cccccc; --border:#888888; --titlebar-top:#4a6fa5; --titlebar-bot:#2a4a80; --wheel-label:#555; }
-  .theme-gold   { --body-top:#d4a84b; --body-bot:#a07830; --wheel-out:#9a7228; --wheel-in:#7a5818; --btn-center:#8a6220; --border:#6a4810; --titlebar-top:#4a6fa5; --titlebar-bot:#2a4a80; --wheel-label:#555; }
-  .theme-white  { --body-top:#f0ede8; --body-bot:#d8d4cc; --wheel-out:#dedad4; --wheel-in:#c8c4bc; --btn-center:#d0ccc4; --border:#a8a49c; --titlebar-top:#4a6fa5; --titlebar-bot:#2a4a80; --wheel-label:#555; }
+  .theme-black  { --body-top:#2c2c2c; --body-bot:#050505; --wheel-out:#1a1a1a; --wheel-in:#0a0a0a; --btn-center:#222222; --border:#000000; --titlebar-top:#333333; --titlebar-bot:#000000; --wheel-label:#aaaaaa; }
+  .theme-red    { --body-top:#e61919; --body-bot:#800000; --wheel-out:#990000; --wheel-in:#660000; --btn-center:#b30000; --border:#4d0000; --titlebar-top:#333333; --titlebar-bot:#000000; --wheel-label:#ffcccc; }
+  .theme-silver { --body-top:#e2e2e2; --body-bot:#9e9e9e; --wheel-out:#f0f0f0; --wheel-in:#d8d8d8; --btn-center:#cccccc; --border:#888888; --titlebar-top:#4a6fa5; --titlebar-bot:#2a4a80; --wheel-label:#555;    }
+  .theme-gold   { --body-top:#f1d592; --body-bot:#b89243; --wheel-out:#e5c67b; --wheel-in:#c9a85a; --btn-center:#d9b86b; --border:#96752d; --titlebar-top:#4a6fa5; --titlebar-bot:#2a4a80; --wheel-label:#6b531e; }
+  .theme-white  { --body-top:#ffffff; --body-bot:#f2f2f2; --wheel-out:#fcfcfc; --wheel-in:#eeeeee; --btn-center:#fdfdfd; --border:#d1d1d1; --titlebar-top:#4a6fa5; --titlebar-bot:#2a4a80; --wheel-label:#888888; }
   .theme-u2     { --body-top:#333333; --body-bot:#000000; --wheel-out:#d50000; --wheel-in:#a00000; --btn-center:#222222; --border:#111111; --titlebar-top:#222222; --titlebar-bot:#000000; --wheel-label:#eeeeee; }
 
   * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; user-select:none; }
@@ -175,6 +175,7 @@ if ('serviceWorker' in navigator) {
     display:flex; align-items:center; justify-content:center;
     overflow:hidden;
     box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    margin-top: 10px;
   }
   .album-art img { width:100%; height:100%; object-fit:cover; }
   .album-art .note { font-size:32px; color:#aaa; }
