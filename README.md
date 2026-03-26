@@ -1,4 +1,5 @@
 iPod Classic PWA 
+
 Una Progressive Web App (PWA) diseñada para transformar un iPhone SE (2016) en un iPod Classic funcional. Este proyecto emula la interfaz icónica y la experiencia de navegación de la Click Wheel original, optimizada para iOS 15.
 
 ✨ Características actuales
