@@ -1020,49 +1020,54 @@ function playTrack(idx) {
 function updateMediaSession(t) {
   if (!('mediaSession' in navigator)) return;
 
-  // Registrar handlers una sola vez — iOS necesita verlos antes de que empiece el audio
-  navigator.mediaSession.setActionHandler('play',          () => { audio.play();  setPlayIcon(false); navigator.mediaSession.playbackState = 'playing'; });
-  navigator.mediaSession.setActionHandler('pause',         () => { audio.pause(); setPlayIcon(true);  navigator.mediaSession.playbackState = 'paused';  });
+  // 1. Registrar handlers de reproducción (Mantengo tu lógica original)
+  navigator.mediaSession.setActionHandler('play', () => { 
+      audio.play(); 
+      setPlayIcon(false); 
+      navigator.mediaSession.playbackState = 'playing'; 
+  });
+  
+  navigator.mediaSession.setActionHandler('pause', () => { 
+      audio.pause(); 
+      setPlayIcon(true);  
+      navigator.mediaSession.playbackState = 'paused';  
+  });
+  
   navigator.mediaSession.setActionHandler('previoustrack', () => playPrev());
-  navigator.mediaSession.setActionHandler('nexttrack',     () => playNext());
-  // Registrar seek handlers vacíos — iOS muestra ⏮⏭ cuando estos están definidos pero no hacen seek
-  try { navigator.mediaSession.setActionHandler('seekbackward', () => {}); } catch(_) {}
-  try { navigator.mediaSession.setActionHandler('seekforward',  () => {}); } catch(_) {}
+  navigator.mediaSession.setActionHandler('nexttrack', () => playNext());
+
+  // 2. Anular los controles de Seek (+10/-10) para forzar los de Anterior/Siguiente
+  // Es mejor usar null como te indiqué antes, o simplemente no registrarlos, 
+  // pero poner null asegura que se desactiven.
+  try { 
+      navigator.mediaSession.setActionHandler('seekbackward', null); 
+  } catch(_) {}
+  
+  try { 
+      navigator.mediaSession.setActionHandler('seekforward', null); 
+  } catch(_) {}
 
   navigator.mediaSession.playbackState = 'playing';
 
-  // Convertir portada a base64 via canvas para máxima compatibilidad con iOS
-  const setMeta = (artSrc) => {
-    navigator.mediaSession.metadata = new MediaMetadata({
-      title:  t.title,
-      artist: t.artist,
-      album:  t.album,
-      artwork: artSrc ? [
-        { src: artSrc, sizes: '512x512', type: 'image/png' },
-        { src: artSrc, sizes: '256x256', type: 'image/png' },
-        { src: artSrc, sizes: '128x128', type: 'image/png' },
-      ] : [],
-    });
+  // 3. Configurar Metadatos y Artwork (Usando t.art directamente sin Canvas)
+  const metadataConfig = {
+      title: t.title || 'Canción desconocida',
+      artist: t.artist || 'Artista desconocido',
+      album: t.album || 'Álbum desconocido'
   };
 
   if (t.art) {
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.onload = () => {
-      try {
-        const canvas = document.createElement('canvas');
-        canvas.width = canvas.height = 512;
-        canvas.getContext('2d').drawImage(img, 0, 0, 512, 512);
-        setMeta(canvas.toDataURL('image/png'));
-      } catch(_) {
-        setMeta(t.art);
-      }
-    };
-    img.onerror = () => setMeta(null);
-    img.src = t.art;
-  } else {
-    setMeta(null);
+      metadataConfig.artwork = [
+          // En iOS moderno con WebKit, pasar el blob: URL directamente funciona.
+          // Ponemos un tamaño grande estándar.
+          { src: t.art, sizes: '512x512', type: 'image/jpeg' }, // o 'image/png'
+          // Añado un par de tamaños extra por compatibilidad, aunque iOS suele usar el de 512
+          { src: t.art, sizes: '256x256', type: 'image/jpeg' },
+          { src: t.art, sizes: '128x128', type: 'image/jpeg' }
+      ];
   }
+
+  navigator.mediaSession.metadata = new MediaMetadata(metadataConfig);
 }
 
 function updateNowPlaying(t) {

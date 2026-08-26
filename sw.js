@@ -1,3 +1,5 @@
+// Actualizacion para MediaSession - v1
+
 const CACHE = 'ipod-v4';
 const BASE = '/iOS15_iPod';
 const ASSETS = [
