@@ -8,12 +8,12 @@
 <meta name="apple-mobile-web-app-title" content="iPod">
 <meta name="theme-color" content="#1a1a1a">
 <title>iPod</title>
-<link rel="apple-touch-icon" href="/iOS15_iPod/icon.png">
-<link rel="icon" href="/iOS15_iPod/icon.png">
+<link rel="apple-touch-icon" href="/iPod_iOS15/icon.png">
+<link rel="icon" href="/iPod_iOS15/icon.png">
 
 <script>
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/iOS15_iPod/sw.js').catch(() => {});
+  navigator.serviceWorker.register('/iPod_iOS15/sw.js').catch(() => {});
 }
 </script>
 <style>
@@ -37,12 +37,11 @@ if ('serviceWorker' in navigator) {
   }
 
   /* ── TEMAS ── */
-  .theme-black  { --body-top:#2c2c2c; --body-bot:#050505; --wheel-out:#1a1a1a; --wheel-in:#0a0a0a; --btn-center:#222222; --border:#000000; --titlebar-top:#333333; --titlebar-bot:#000000; --wheel-label:#aaaaaa; }
-  .theme-red    { --body-top:#e61919; --body-bot:#800000; --wheel-out:#990000; --wheel-in:#660000; --btn-center:#b30000; --border:#4d0000; --titlebar-top:#333333; --titlebar-bot:#000000; --wheel-label:#ffcccc; }
-  .theme-silver { --body-top:#e2e2e2; --body-bot:#9e9e9e; --wheel-out:#f0f0f0; --wheel-in:#d8d8d8; --btn-center:#cccccc; --border:#888888; --titlebar-top:#4a6fa5; --titlebar-bot:#2a4a80; --wheel-label:#555;    }
-  .theme-gold   { --body-top:#f1d592; --body-bot:#b89243; --wheel-out:#e5c67b; --wheel-in:#c9a85a; --btn-center:#d9b86b; --border:#96752d; --titlebar-top:#4a6fa5; --titlebar-bot:#2a4a80; --wheel-label:#6b531e; }
-  .theme-white  { --body-top:#ffffff; --body-bot:#f2f2f2; --wheel-out:#fcfcfc; --wheel-in:#eeeeee; --btn-center:#fdfdfd; --border:#d1d1d1; --titlebar-top:#4a6fa5; --titlebar-bot:#2a4a80; --wheel-label:#888888; }
-  .theme-u2     { --body-top:#333333; --body-bot:#000000; --wheel-out:#d50000; --wheel-in:#a00000; --btn-center:#222222; --border:#111111; --titlebar-top:#222222; --titlebar-bot:#000000; --wheel-label:#eeeeee; }
+  .theme-black  { --body-top:#2a2a2a; --body-bot:#181818; --wheel-out:#222; --wheel-in:#181818; --btn-center:#282828; --border:#111; --titlebar-top:#222; --titlebar-bot:#111; --wheel-label:#999; }
+  .theme-red    { --body-top:#a02010; --body-bot:#6e1508; --wheel-out:#5a1008; --wheel-in:#420c06; --btn-center:#520e07; --border:#380a05; --titlebar-top:#4a6fa5; --titlebar-bot:#2a4a80; --wheel-label:#c88; }
+  .theme-silver { --body-top:#d8d8d8; --body-bot:#b0b0b0; --wheel-out:#c0c0c0; --wheel-in:#a8a8a8; --btn-center:#b8b8b8; --border:#909090; --titlebar-top:#4a6fa5; --titlebar-bot:#2a4a80; --wheel-label:#555; }
+  .theme-gold   { --body-top:#d4a84b; --body-bot:#a07830; --wheel-out:#9a7228; --wheel-in:#7a5818; --btn-center:#8a6220; --border:#6a4810; --titlebar-top:#4a6fa5; --titlebar-bot:#2a4a80; --wheel-label:#555; }
+  .theme-white  { --body-top:#f0ede8; --body-bot:#d8d4cc; --wheel-out:#dedad4; --wheel-in:#c8c4bc; --btn-center:#d0ccc4; --border:#a8a49c; --titlebar-top:#4a6fa5; --titlebar-bot:#2a4a80; --wheel-label:#555; }
 
   * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; user-select:none; }
 
@@ -94,24 +93,11 @@ if ('serviceWorker' in navigator) {
   .title-bar {
     background: linear-gradient(180deg, var(--titlebar-top) 0%, var(--titlebar-bot) 100%);
     height: 20px;
-    display: grid;
-    grid-template-columns: 1fr auto 1fr; 
-    align-items: center; 
-    justify-content: space-between;
+    display: flex; align-items: center; justify-content: space-between;
     padding: 0 8px;
     font-size: 11px;
     font-weight: bold;
     color: #fff;
-  }
-
-  .tb-left { display: flex; justify-content: flex-start; overflow: hidden; white-space: nowrap; }
-  .tb-center { display: flex; justify-content: center; font-variant-numeric: tabular-nums; }
-  .tb-right { display: flex; justify-content: flex-end; align-items: center; gap: 5px; }
-
-  /* Iconos de la barra superior */
-  #status-shuffle, #status-repeat {
-    font-size: 9px;
-    line-height: 1;
   }
 
   .title-bar .battery {
@@ -188,7 +174,6 @@ if ('serviceWorker' in navigator) {
     display:flex; align-items:center; justify-content:center;
     overflow:hidden;
     box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-    margin-top: 10px;
   }
   .album-art img { width:100%; height:100%; object-fit:cover; }
   .album-art .note { font-size:32px; color:#aaa; }
@@ -490,12 +475,6 @@ if ('serviceWorker' in navigator) {
   .cf-info-title  { font-size:12px; font-weight:bold; color:#000; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; text-align:center; }
   .cf-info-artist { font-size:10px; color:#666; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; }
   .cf-floor { display:none; }
-
-  /* Clase que aplicaremos cuando estemos en modo scrubbing */
-  .progress-dot.active {
-    background: var(--screen-accent) !important; /* Azul en lugar de gris */
-    transform: translateY(-50%) scale(1.5); /* Se hace un poco más grande */
-  }
 </style>
 </head>
 <body>
@@ -527,16 +506,11 @@ if ('serviceWorker' in navigator) {
 
       <!-- Barra de título -->
       <div class="title-bar">
-        <div class="tb-left"><span id="title-text">iPod</span></div>
-        <div class="tb-center"><span id="status-clock">00:00</span></div>
-        <div class="tb-right">
-          <span id="status-shuffle" style="display:none;">🔀</span>
-          <span id="status-repeat" style="display:none;">🔁</span>
-          <div class="battery">
-            <div class="battery-icon"><div class="battery-fill"></div></div>
-          </div>
+        <span id="title-text">Music</span>
+        <div class="battery">
+          <div class="battery-icon"><div class="battery-fill"></div></div>
         </div>
-    </div>
+      </div>
 
       <!-- Vista: Cover Flow -->
       <div class="view" id="view-cf">
@@ -557,6 +531,10 @@ if ('serviceWorker' in navigator) {
 
       <!-- Vista: Lista (artistas / álbumes / canciones) -->
       <div class="view" id="view-list">
+        <div id="search-bar" style="display:none; background:#f2f2f2; border-bottom:1px solid #ddd; padding:3px 6px;">
+          <input id="search-input" type="search" placeholder="Buscar canción..." autocomplete="off" autocorrect="off" spellcheck="false"
+            style="width:100%; border:1px solid #ccc; border-radius:8px; padding:3px 8px; font-size:12px; background:#fff; outline:none; color:#000;">
+        </div>
         <div class="menu-list" id="menu-list"></div>
       </div>
 
@@ -637,9 +615,7 @@ if ('serviceWorker' in navigator) {
   </div>
 
 </div>
-<video id="no-sleep-video" playsinline muted loop style="position:fixed; top:0; left:0; width:1px; height:1px; opacity:0.01; pointer-events:none;">
-  <source src="data:video/mp4;base64,AAAAIGZ0eXBpc29tAAACAGlzb21pc28yYXZjMW1wNDEAAAAIZnJlZQAAAAt0cmF0Y29uZgAAADxtZGF0" type="video/mp4">
-</video>
+
 <script>
 // ─── LECTOR ID3 PROPIO (v2.2, v2.3, v2.4) ────────────────
 const ID3 = {
@@ -731,7 +707,6 @@ const state = {
   theme: 0,            // 0=blanco 1=negro 2=rojo 3=plateado 4=dorado
 
   // Navegación
-  scrubbing: false,
   nav: [],             // pila de vistas
   currentView: 'main',
   menuIdx: 0,
@@ -821,6 +796,7 @@ function goTo(view, title, items, ctx) {
 }
 
 function goBack() {
+  hideSearchBar();
   // Si estamos en Cover Flow viendo canciones, volver a la lista de álbumes
   if (state.currentView === 'cf' && cfMode === 'songs') {
     cfMode = 'albums';
@@ -847,16 +823,7 @@ function goBack() {
 
 // ─── ACCIONES MENÚ ────────────────────────────────────────
 function handleSelect() {
-  if (state.currentView === 'np') { // Tocar el botón central en "Now Playing" alterna entre volumen y progreso
-    state.scrubbing = !state.scrubbing;
-    const dot = document.getElementById('prog-dot');
-    if (dot) {
-      if (state.scrubbing) dot.classList.add('active');
-      else dot.classList.remove('active');
-    }
-    togglePlay();
-    return; 
-  }
+  if (state.currentView === 'np') { togglePlay(); return; }
   if (state.currentView === 'cf') {
     if (cfMode === 'albums') enterCfAlbum();
     else playCfSong();
@@ -880,8 +847,11 @@ function handleSelect() {
       case 'music':
       case 'songs':
         if (state.tracks.length === 0) { showMsg('Ve a Ajustes → Cargar música'); return; }
-        const songs = state.tracks.map((t,i) => ({ label: t.title, idx: i }));
-        goTo('list', 'Canciones', songs, { type: 'songs' });
+        const songs = state.tracks
+          .map((t,i) => ({ label: t.title, idx: i }))
+          .sort((a,b) => a.label.localeCompare(b.label, 'es', { sensitivity: 'base' }));
+        goTo('list', 'Canciones', songs, { type: 'songs', searchable: true });
+        showSearchBar(songs);
         break;
       case 'artists':
         if (state.tracks.length === 0) { showMsg('Ve a Ajustes → Cargar música'); return; }
@@ -889,12 +859,12 @@ function handleSelect() {
           state.tracks.flatMap(t =>
             t.artist.split(/,|&|feat\.|ft\.|\/|\+/i).map(a => a.trim()).filter(Boolean)
           )
-        )].sort();
+        )].sort((a,b) => a.localeCompare(b, 'es', { sensitivity: 'base' }));
         goTo('list', 'Artistas', artists, { type: 'artists' });
         break;
       case 'albums':
         if (state.tracks.length === 0) { showMsg('Ve a Ajustes → Cargar música'); return; }
-        const albums = [...new Set(state.tracks.map(t => t.album))].sort();
+        const albums = [...new Set(state.tracks.map(t => t.album))].sort((a,b) => a.localeCompare(b, 'es', { sensitivity: 'base' }));
         goTo('list', 'Álbumes', albums, { type: 'albums' });
         break;
       case 'nowplaying':
@@ -907,7 +877,7 @@ function handleSelect() {
         const sets = [
           'Aleatorio: ' + (state.shuffle ? 'Sí' : 'No'),
           'Repetir: ' + ['No','Todo','Una'][state.repeatMode],
-          'Tema: ' + ['Blanco','Negro','Rojo','Plateado','Dorado', 'Edición U2'][state.theme],
+          'Tema: ' + ['Blanco','Negro','Rojo','Plateado','Dorado'][state.theme],
           'Cargar música'
         ];
         goTo('list', 'Ajustes', sets, { type: 'settings' });
@@ -926,7 +896,7 @@ function handleSelect() {
       } else if (idx === 1) {
         state.repeatMode = (state.repeatMode+1)%3; updateShuffleRepeatUI();
       } else if (idx === 2) {
-        state.theme = (state.theme + 1) % 6;
+        state.theme = (state.theme + 1) % 5;
         applyTheme();
       } else if (idx === 3) {
         openFilePicker(); return;
@@ -934,7 +904,7 @@ function handleSelect() {
       const sets = [
         'Aleatorio: ' + (state.shuffle?'Sí':'No'),
         'Repetir: ' + ['No','Todo','Una'][state.repeatMode],
-        'Tema: ' + ['Blanco','Negro','Rojo','Plateado','Dorado', 'Edición U2'][state.theme],
+        'Tema: ' + ['Blanco','Negro','Rojo','Plateado','Dorado'][state.theme],
         'Cargar música'
       ];
       state.listItems = sets;
@@ -1007,67 +977,58 @@ function shuffle(arr) {
 function playTrack(idx) {
   const t = state.tracks[idx];
   if (!t) return;
-  state.scrubbing = false; // Resetear modo búsqueda
-  const dot = document.getElementById('prog-dot');
-  if (dot) dot.classList.remove('active');
   audio.src = URL.createObjectURL(t.file);
   audio.play();
   updateNowPlaying(t);
   updateMediaSession(t);
-  toggleScreenWakeLock(true);
 }
 
 function updateMediaSession(t) {
   if (!('mediaSession' in navigator)) return;
 
-  // 1. Registrar handlers de reproducción (Mantengo tu lógica original)
-  navigator.mediaSession.setActionHandler('play', () => { 
-      audio.play(); 
-      setPlayIcon(false); 
-      navigator.mediaSession.playbackState = 'playing'; 
-  });
-  
-  navigator.mediaSession.setActionHandler('pause', () => { 
-      audio.pause(); 
-      setPlayIcon(true);  
-      navigator.mediaSession.playbackState = 'paused';  
-  });
-  
+  // Registrar handlers una sola vez — iOS necesita verlos antes de que empiece el audio
+  navigator.mediaSession.setActionHandler('play',          () => { audio.play();  setPlayIcon(false); navigator.mediaSession.playbackState = 'playing'; });
+  navigator.mediaSession.setActionHandler('pause',         () => { audio.pause(); setPlayIcon(true);  navigator.mediaSession.playbackState = 'paused';  });
   navigator.mediaSession.setActionHandler('previoustrack', () => playPrev());
-  navigator.mediaSession.setActionHandler('nexttrack', () => playNext());
-
-  // 2. Anular los controles de Seek (+10/-10) para forzar los de Anterior/Siguiente
-  // Es mejor usar null como te indiqué antes, o simplemente no registrarlos, 
-  // pero poner null asegura que se desactiven.
-  try { 
-      navigator.mediaSession.setActionHandler('seekbackward', null); 
-  } catch(_) {}
-  
-  try { 
-      navigator.mediaSession.setActionHandler('seekforward', null); 
-  } catch(_) {}
+  navigator.mediaSession.setActionHandler('nexttrack',     () => playNext());
+  // Registrar seek handlers vacíos — iOS muestra ⏮⏭ cuando estos están definidos pero no hacen seek
+  try { navigator.mediaSession.setActionHandler('seekbackward', () => {}); } catch(_) {}
+  try { navigator.mediaSession.setActionHandler('seekforward',  () => {}); } catch(_) {}
 
   navigator.mediaSession.playbackState = 'playing';
 
-  // 3. Configurar Metadatos y Artwork (Usando t.art directamente sin Canvas)
-  const metadataConfig = {
-      title: t.title || 'Canción desconocida',
-      artist: t.artist || 'Artista desconocido',
-      album: t.album || 'Álbum desconocido'
+  // Convertir portada a base64 via canvas para máxima compatibilidad con iOS
+  const setMeta = (artSrc) => {
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title:  t.title,
+      artist: t.artist,
+      album:  t.album,
+      artwork: artSrc ? [
+        { src: artSrc, sizes: '512x512', type: 'image/png' },
+        { src: artSrc, sizes: '256x256', type: 'image/png' },
+        { src: artSrc, sizes: '128x128', type: 'image/png' },
+      ] : [],
+    });
   };
 
   if (t.art) {
-      metadataConfig.artwork = [
-          // En iOS moderno con WebKit, pasar el blob: URL directamente funciona.
-          // Ponemos un tamaño grande estándar.
-          { src: t.art, sizes: '512x512', type: 'image/jpeg' }, // o 'image/png'
-          // Añado un par de tamaños extra por compatibilidad, aunque iOS suele usar el de 512
-          { src: t.art, sizes: '256x256', type: 'image/jpeg' },
-          { src: t.art, sizes: '128x128', type: 'image/jpeg' }
-      ];
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = canvas.height = 512;
+        canvas.getContext('2d').drawImage(img, 0, 0, 512, 512);
+        setMeta(canvas.toDataURL('image/png'));
+      } catch(_) {
+        setMeta(t.art);
+      }
+    };
+    img.onerror = () => setMeta(null);
+    img.src = t.art;
+  } else {
+    setMeta(null);
   }
-
-  navigator.mediaSession.metadata = new MediaMetadata(metadataConfig);
 }
 
 function updateNowPlaying(t) {
@@ -1116,11 +1077,9 @@ function togglePlay() {
   if (audio.paused) {
     audio.play();
     setPlayIcon(false);
-    toggleScreenWakeLock(true);
   } else {
     audio.pause();
     setPlayIcon(true);
-    toggleScreenWakeLock(false);
   }
 }
 
@@ -1160,15 +1119,6 @@ function updateShuffleRepeatUI() {
   const rLabels = ['', 'Repetir todo', 'Repetir 1'];
   rl.textContent = rLabels[state.repeatMode] || 'Repetir';
   rl.className   = state.repeatMode > 0 ? 'on' : '';
-
-  const sIcon = document.getElementById('status-shuffle');
-  const rIcon = document.getElementById('status-repeat');
-  
-  if (sIcon) sIcon.style.display = state.shuffle ? 'inline' : 'none';
-  if (rIcon) {
-    rIcon.style.display = state.repeatMode > 0 ? 'inline' : 'none';
-    rIcon.textContent = state.repeatMode === 2 ? '🔂' : '🔁'; // Diferenciar "Repetir 1"
-  }
 }
 
 // ─── SCROLL RUEDA (gestos giratorios) ─────────────────────
@@ -1221,26 +1171,14 @@ document.getElementById('wheel').addEventListener('touchmove', e => {
 document.getElementById('wheel').addEventListener('touchend', () => { lastAngle=null; angleDelta=0; });
 
 function scrollDown() {
-  if (state.currentView === 'np') { if (state.scrubbing) {
-      // Adelantar 5 segundos
-      audio.currentTime = Math.min(audio.duration, audio.currentTime + 5);
-    } else {
-      // Volumen (esto cambia el volumen interno del audio)
-      audio.volume = Math.min(1, audio.volume + 0.05);
-    } return; }
+  if (state.currentView === 'np') { audio.volume = Math.min(1, audio.volume + 0.05); return; }
   if (state.currentView === 'cf') { cfScrollDown(); return; }
   const view = state.currentView;
   if (view === 'main') { state.menuIdx = Math.min(MAIN_MENU.length-1, state.menuIdx+1); renderMainMenu(); }
   else if (view === 'list') { state.menuIdx = Math.min(state.listItems.length-1, state.menuIdx+1); renderMenu('menu-list', state.listItems, state.menuIdx); }
 }
 function scrollUp() {
-  if (state.currentView === 'np') { if (state.scrubbing) {
-      // Retroceder 5 segundos
-      audio.currentTime = Math.max(0, audio.currentTime - 5);
-    } else {
-      // Volumen
-      audio.volume = Math.max(0, audio.volume - 0.05);
-    } return; }
+  if (state.currentView === 'np') { audio.volume = Math.max(0, audio.volume - 0.05); return; }
   if (state.currentView === 'cf') { cfScrollUp(); return; }
   const view = state.currentView;
   if (view === 'main') { state.menuIdx = Math.max(0, state.menuIdx-1); renderMainMenu(); }
@@ -1294,6 +1232,34 @@ function loadTracksFromDB() {
 }
 
 // ─── CARGA DE ARCHIVOS ────────────────────────────────────
+function showSearchBar(allSongs) {
+  const bar   = document.getElementById('search-bar');
+  const input = document.getElementById('search-input');
+  bar.style.display = 'block';
+  input.value = '';
+
+  input.addEventListener('input', function handler() {
+    const q = input.value.trim().toLowerCase();
+    const filtered = q
+      ? allSongs.filter(s => s.label.toLowerCase().includes(q))
+      : allSongs;
+    state.listItems = filtered;
+    state.menuIdx   = 0;
+    renderMenu('menu-list', filtered, 0);
+  });
+
+  // Guardar referencia para limpiar al salir
+  input._searchHandler = input.oninput;
+}
+
+function hideSearchBar() {
+  const bar   = document.getElementById('search-bar');
+  const input = document.getElementById('search-input');
+  bar.style.display = 'none';
+  input.value = '';
+  input.replaceWith(input.cloneNode(true)); // eliminar event listeners
+}
+
 function showMsg(msg) {
   const el = document.getElementById('title-text');
   const prev = el.textContent;
@@ -1496,7 +1462,7 @@ function cfScrollUp() {
 }
 
 // ─── TEMAS ────────────────────────────────────────────────
-const THEMES = ['theme-white','theme-black','theme-red','theme-silver','theme-gold', 'theme-u2'];
+const THEMES = ['theme-white','theme-black','theme-red','theme-silver','theme-gold'];
 function applyTheme() {
   const ipod = document.querySelector('.ipod');
   ipod.classList.remove(...THEMES);
@@ -1510,34 +1476,8 @@ async function init() {
   document.getElementById('loading').classList.add('hidden');
   renderMainMenu();
   showView('main');
-  updateClock();
   updateShuffleRepeatUI();
 }
-
-function toggleScreenWakeLock(on) {
-  const video = document.getElementById('no-sleep-video');
-  if (!video) return;
-  if (on) {
-    video.play().catch(() => {});
-  } else {
-    video.pause();
-  }
-}
-
-function updateClock() {
-  const now = new Date();
-  const hours = String(now.getHours()).padStart(2, '0');
-  const minutes = String(now.getMinutes()).padStart(2, '0');
-  const clockEl = document.getElementById('status-clock');
-  
-  if (clockEl) {
-    clockEl.textContent = `${hours}:${minutes}`;
-    // Ocultar el reloj solo si estamos en "Now Playing" para evitar saturación
-    clockEl.style.visibility = state.currentView === 'np' ? 'hidden' : 'visible';
-  }
-}
-// Actualizar cada segundo
-setInterval(updateClock, 1000);
 
 setTimeout(init, 1800);
 </script>
