@@ -861,11 +861,13 @@ function handleSelect() {
           )
         )].sort((a,b) => a.localeCompare(b, 'es', { sensitivity: 'base' }));
         goTo('list', 'Artistas', artists, { type: 'artists' });
+        showSearchBar(artists);
         break;
       case 'albums':
         if (state.tracks.length === 0) { showMsg('Ve a Ajustes → Cargar música'); return; }
         const albums = [...new Set(state.tracks.map(t => t.album))].sort((a,b) => a.localeCompare(b, 'es', { sensitivity: 'base' }));
         goTo('list', 'Álbumes', albums, { type: 'albums' });
+        showSearchBar(albums);
         break;
       case 'nowplaying':
         if (state.tracks.length === 0) { showMsg('Ve a Ajustes → Cargar música'); return; }
@@ -929,8 +931,12 @@ function handleSelect() {
         const parts = t.artist.split(/,|&|feat\.|ft\.|\/|\+/i).map(a => a.trim());
         return parts.some(p => p.toLowerCase() === artist.toLowerCase());
       });
-      const songs = filtered.map(({t,i})=>({ label: t.title, idx: i }));
-      goTo('list', artist, songs, { type:'songs-filtered', idxs: filtered.map(({i})=>i) });
+      const songs = filtered
+        .map(({t,i})=>({ label: t.title, idx: i }))
+        .sort((a,b) => a.label.localeCompare(b.label, 'es', { sensitivity: 'base' }));
+      const sortedIdxs = songs.map(s => s.idx);
+      goTo('list', artist, songs, { type:'songs-filtered', idxs: sortedIdxs });
+      showSearchBar(songs);
       return;
     }
 
@@ -938,7 +944,8 @@ function handleSelect() {
       const album = state.listItems[idx];
       const filtered = state.tracks.map((t,i)=>({t,i})).filter(({t})=>t.album===album);
       const songs = filtered.map(({t,i})=>({ label: t.title, idx: i }));
-      goTo('list', album, songs, { type:'songs-filtered', idxs: filtered.map(({i})=>i) });
+      const sortedIdxs = filtered.map(({i})=>i);
+      goTo('list', album, songs, { type:'songs-filtered', idxs: sortedIdxs });
       return;
     }
 
@@ -1232,24 +1239,27 @@ function loadTracksFromDB() {
 }
 
 // ─── CARGA DE ARCHIVOS ────────────────────────────────────
-function showSearchBar(allSongs) {
+function showSearchBar(allItems) {
   const bar   = document.getElementById('search-bar');
   const input = document.getElementById('search-input');
   bar.style.display = 'block';
   input.value = '';
 
-  input.addEventListener('input', function handler() {
-    const q = input.value.trim().toLowerCase();
+  const newInput = input.cloneNode(true);
+  input.parentNode.replaceChild(newInput, input);
+
+  newInput.addEventListener('input', function() {
+    const q = newInput.value.trim().toLowerCase();
     const filtered = q
-      ? allSongs.filter(s => s.label.toLowerCase().includes(q))
-      : allSongs;
+      ? allItems.filter(s => {
+          const text = typeof s === 'string' ? s : s.label;
+          return text.toLowerCase().includes(q);
+        })
+      : allItems;
     state.listItems = filtered;
     state.menuIdx   = 0;
     renderMenu('menu-list', filtered, 0);
   });
-
-  // Guardar referencia para limpiar al salir
-  input._searchHandler = input.oninput;
 }
 
 function hideSearchBar() {
