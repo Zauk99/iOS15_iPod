@@ -8,8 +8,8 @@
 <meta name="apple-mobile-web-app-title" content="iPod">
 <meta name="theme-color" content="#1a1a1a">
 <title>iPod</title>
-<link rel="apple-touch-icon" href="icon.png">
-<link rel="icon" href="icon.png">
+<link rel="apple-touch-icon" href="/iPod_iOS15/icon.png">
+<link rel="icon" href="/iPod_iOS15/icon.png">
 
 <script>
 if ('serviceWorker' in navigator) {
@@ -851,7 +851,7 @@ function handleSelect() {
           .map((t,i) => ({ label: t.title, idx: i }))
           .sort((a,b) => a.label.localeCompare(b.label, 'es', { sensitivity: 'base' }));
         goTo('list', 'Canciones', songs, { type: 'songs', searchable: true });
-        showSearchBar(songs);
+        showSearchBar(songs, 'Buscar canción...');
         break;
       case 'artists':
         if (state.tracks.length === 0) { showMsg('Ve a Ajustes → Cargar música'); return; }
@@ -861,13 +861,13 @@ function handleSelect() {
           )
         )].sort((a,b) => a.localeCompare(b, 'es', { sensitivity: 'base' }));
         goTo('list', 'Artistas', artists, { type: 'artists' });
-        showSearchBar(artists);
+        showSearchBar(artists, 'Buscar artista...');
         break;
       case 'albums':
         if (state.tracks.length === 0) { showMsg('Ve a Ajustes → Cargar música'); return; }
         const albums = [...new Set(state.tracks.map(t => t.album))].sort((a,b) => a.localeCompare(b, 'es', { sensitivity: 'base' }));
         goTo('list', 'Álbumes', albums, { type: 'albums' });
-        showSearchBar(albums);
+        showSearchBar(albums, 'Buscar álbum...');
         break;
       case 'nowplaying':
         if (state.tracks.length === 0) { showMsg('Ve a Ajustes → Cargar música'); return; }
@@ -936,7 +936,7 @@ function handleSelect() {
         .sort((a,b) => a.label.localeCompare(b.label, 'es', { sensitivity: 'base' }));
       const sortedIdxs = songs.map(s => s.idx);
       goTo('list', artist, songs, { type:'songs-filtered', idxs: sortedIdxs });
-      showSearchBar(songs);
+      showSearchBar(songs, 'Buscar canción...');
       return;
     }
 
@@ -985,57 +985,70 @@ function playTrack(idx) {
   const t = state.tracks[idx];
   if (!t) return;
   audio.src = URL.createObjectURL(t.file);
-  audio.play();
-  updateNowPlaying(t);
-  updateMediaSession(t);
+  audio.play().then(() => {
+    updateNowPlaying(t);
+    updateMediaSession(t);
+  }).catch(() => {
+    updateNowPlaying(t);
+    updateMediaSession(t);
+  });
 }
 
 function updateMediaSession(t) {
   if (!('mediaSession' in navigator)) return;
 
-  // Registrar handlers una sola vez — iOS necesita verlos antes de que empiece el audio
-  navigator.mediaSession.setActionHandler('play',          () => { audio.play();  setPlayIcon(false); navigator.mediaSession.playbackState = 'playing'; });
-  navigator.mediaSession.setActionHandler('pause',         () => { audio.pause(); setPlayIcon(true);  navigator.mediaSession.playbackState = 'paused';  });
+  // Handlers — seekbackward/seekforward a null para forzar botones anterior/siguiente
+  navigator.mediaSession.setActionHandler('play',          () => { audio.play(); setPlayIcon(false); navigator.mediaSession.playbackState = 'playing'; });
+  navigator.mediaSession.setActionHandler('pause',         () => { audio.pause(); setPlayIcon(true); navigator.mediaSession.playbackState = 'paused'; });
   navigator.mediaSession.setActionHandler('previoustrack', () => playPrev());
   navigator.mediaSession.setActionHandler('nexttrack',     () => playNext());
-  // Registrar seek handlers vacíos — iOS muestra ⏮⏭ cuando estos están definidos pero no hacen seek
-  try { navigator.mediaSession.setActionHandler('seekbackward', () => {}); } catch(_) {}
-  try { navigator.mediaSession.setActionHandler('seekforward',  () => {}); } catch(_) {}
+  try { navigator.mediaSession.setActionHandler('seekbackward', null); } catch(_) {}
+  try { navigator.mediaSession.setActionHandler('seekforward',  null); } catch(_) {}
 
   navigator.mediaSession.playbackState = 'playing';
 
-  // Convertir portada a base64 via canvas para máxima compatibilidad con iOS
-  const setMeta = (artSrc) => {
+  // Usar la portada ya convertida a base64 si está disponible
+  // Si no, establecer metadata sin portada primero y convertir después
+  if (t.artB64) {
     navigator.mediaSession.metadata = new MediaMetadata({
-      title:  t.title,
-      artist: t.artist,
-      album:  t.album,
-      artwork: artSrc ? [
-        { src: artSrc, sizes: '512x512', type: 'image/png' },
-        { src: artSrc, sizes: '256x256', type: 'image/png' },
-        { src: artSrc, sizes: '128x128', type: 'image/png' },
-      ] : [],
+      title: t.title, artist: t.artist, album: t.album,
+      artwork: [
+        { src: t.artB64, sizes: '512x512', type: 'image/jpeg' },
+        { src: t.artB64, sizes: '256x256', type: 'image/jpeg' },
+      ],
     });
-  };
-
-  if (t.art) {
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.onload = () => {
-      try {
-        const canvas = document.createElement('canvas');
-        canvas.width = canvas.height = 512;
-        canvas.getContext('2d').drawImage(img, 0, 0, 512, 512);
-        setMeta(canvas.toDataURL('image/png'));
-      } catch(_) {
-        setMeta(t.art);
-      }
-    };
-    img.onerror = () => setMeta(null);
-    img.src = t.art;
   } else {
-    setMeta(null);
+    // Establecer metadata sin portada inmediatamente
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: t.title, artist: t.artist, album: t.album, artwork: [],
+    });
+    // Convertir y actualizar si hay portada
+    if (t.art) {
+      blobToBase64(t.art).then(b64 => {
+        t.artB64 = b64; // cachear para la próxima vez
+        if (navigator.mediaSession.metadata?.title === t.title) {
+          navigator.mediaSession.metadata = new MediaMetadata({
+            title: t.title, artist: t.artist, album: t.album,
+            artwork: [
+              { src: b64, sizes: '512x512', type: 'image/jpeg' },
+              { src: b64, sizes: '256x256', type: 'image/jpeg' },
+            ],
+          });
+        }
+      }).catch(() => {});
+    }
   }
+}
+
+function blobToBase64(blobUrl) {
+  return fetch(blobUrl)
+    .then(r => r.blob())
+    .then(blob => new Promise((res, rej) => {
+      const reader = new FileReader();
+      reader.onloadend = () => res(reader.result);
+      reader.onerror  = rej;
+      reader.readAsDataURL(blob);
+    }));
 }
 
 function updateNowPlaying(t) {
@@ -1230,6 +1243,8 @@ function loadTracksFromDB() {
       state.tracks = rows.map(r => ({
         file: r.file, title: r.title, artist: r.artist, album: r.album,
         art:  r.artBlob ? URL.createObjectURL(r.artBlob) : null,
+        artBlob: r.artBlob || null,
+        artB64: null, // se convierte la primera vez que se reproduce
         key:  r.key,
       }));
       res(true);
@@ -1239,13 +1254,15 @@ function loadTracksFromDB() {
 }
 
 // ─── CARGA DE ARCHIVOS ────────────────────────────────────
-function showSearchBar(allItems) {
+function showSearchBar(allItems, placeholder) {
   const bar   = document.getElementById('search-bar');
   const input = document.getElementById('search-input');
   bar.style.display = 'block';
   input.value = '';
+  input.placeholder = placeholder || 'Buscar...';
 
   const newInput = input.cloneNode(true);
+  newInput.placeholder = placeholder || 'Buscar...';
   input.parentNode.replaceChild(newInput, input);
 
   newInput.addEventListener('input', function() {
